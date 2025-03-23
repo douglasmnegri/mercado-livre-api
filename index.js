@@ -29,6 +29,10 @@ async function fetchAndStoreItem(itemId) {
       }
     );
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch item ${itemId}: ${response.statusText}`);
+    }
+
     const json = await response.json();
     if (!json.variations) return;
 
@@ -64,12 +68,12 @@ async function fetchAndStoreItem(itemId) {
     await Promise.all(variationPromises);
     console.log(`Produto ${itemId} inserido no banco.`);
   } catch (error) {
+    console.error(`Error processing item ${itemId}:`, error);
   }
 }
 
 app.get("/fetch-all-items", async (req, res) => {
   try {
-
     const data = await fs.readFile(path.join(__dirname, "id.json"), "utf-8");
     const itemIds = JSON.parse(data);
 
@@ -77,11 +81,23 @@ app.get("/fetch-all-items", async (req, res) => {
 
     res.json({ message: "Todos os produtos processados com sucesso!" });
   } catch (error) {
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error("Error in /fetch-all-items:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor", details: error.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+
+// Graceful shutdown
+process.on("SIGINT", () => {
+  db.destroy();
+  server.close(() => {
+    console.log("Servidor e conexão com o banco de dados encerrados.");
+    process.exit(0);
+  });
 });
