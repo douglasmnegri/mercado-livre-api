@@ -40,15 +40,60 @@ app.post("/test", async (req, res) => {
 });
 
 app.get("/items/:id", async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://api.mercadolibre.com/items/${req.params.id}`,
+      {
+        headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+      }
+    );
 
-    console.log(req)
+    const json = await response.json();
+
+    json.variations.forEach((variation, index) => {
+      let color, size;
+      const stock = variation.available_quantity;
+      const sold = variation.sold_quantity;
+      const userProductID = variation.user_product_id;
+      const permaLink = json.permalink;
+
+      variation.attribute_combinations.forEach((attr) => {
+        if (attr.name === "Cor") {
+          color = attr.value_name;
+        } else if (attr.name === "Tamanho") {
+          size = attr.value_name;
+        }
+      });
+
+      const variationDetails = {
+        product_id: userProductID,
+        stock: stock,
+        sold: sold,
+        color: color,
+        size: size,
+        link: permaLink,
+      };
+
+    });
+
+    res.json(json);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/orders", async (req, res) => {
   const response = await fetch(
-    `https://api.mercadolibre.com/items/${req.params.id}`,
+    `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=2025-01-01T00:00:00.000-00:00&order.date_created.to=2025-03-03T00:00:00.000-00:00&fields=id,status,total_amount,buyer,status`,
     {
       headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
     }
   );
-  res.json(await response.json());
+  const data = await response.json();
+
+  console.log(data);
+  res.json(data);
 });
 
 const PORT = process.env.PORT || 3000;
