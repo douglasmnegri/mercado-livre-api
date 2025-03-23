@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: mercado_livre
+    environment:
+      POSTGRES_USER: douglasmnegri
+      POSTGRES_PASSWORD: ml
+      POSTGRES_DB: mercado_livre_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
