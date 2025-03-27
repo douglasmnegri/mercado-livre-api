@@ -93,6 +93,50 @@ const server = app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
+app.post("/get-access-token", async (req, res) => {
+  try {
+    const headers = {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded",
+    };
+
+    const data = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.ID,
+      client_secret: process.env.KEY,
+      code: process.env.CODE,
+      redirect_uri: process.env.URI,
+    }).toString();
+
+    const response = await fetch(process.env.MERCADOLIVREURL, {
+      method: "POST",
+      headers: headers,
+      body: data,
+    });
+
+    const json = await response.json();
+    console.log(json);
+
+    res.json(json);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/orders", async (req, res) => {
+  const response = await fetch(
+    `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=2025-01-01T00:00:00.000-00:00&order.date_created.to=2025-03-03T00:00:00.000-00:00&fields=id,status,total_amount,buyer,status`,
+    {
+      headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+    }
+  );
+  const data = await response.json();
+
+  console.log(data);
+  res.json(data);
+});
+
 // Graceful shutdown
 process.on("SIGINT", () => {
   db.destroy();
