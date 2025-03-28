@@ -34,6 +34,35 @@ async function fetchAndStoreItem(itemId) {
     }
 
     const json = await response.json();
+    const mainMaterial = json.attributes.find(
+      (attr) => attr.id === "SHIRT_MATERIAL"
+    )?.value_name;
+    const productType = json.attributes.find(
+      (attr) => attr.id === "MODEL"
+    )?.value_name;
+
+    function getShirtData(material, type) {
+      let shirtType, shirtMaterial;
+      json.attributes.find((attr) => {
+        if (attr.id == material) {
+          shirtMaterial = attr.value_name;
+        }
+        if (attr.id == type) {
+          shirtType = attr.value_name;
+        }
+      });
+
+      return [shirtType, shirtMaterial];
+    }
+
+    let type, fabric;
+
+    if (json.category_id == "MLB107292") {
+      [type, fabric] = getShirtData("MODEL", "SHIRT_MATERIAL");
+    } else {
+      [type, fabric] = getShirtData("MAIN_MATERIAL", "GARMENT_TYPE");
+    }
+
     if (!json.variations) return;
 
     const variationPromises = json.variations.map(async (variation) => {
@@ -54,7 +83,8 @@ async function fetchAndStoreItem(itemId) {
 
       const variationDetails = {
         product_id: userProductID,
-        title,
+        type,
+        fabric,
         stock,
         sold,
         color,
