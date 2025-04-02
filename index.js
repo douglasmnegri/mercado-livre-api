@@ -58,7 +58,8 @@ async function fetchAndStoreItem(itemId) {
     let type, fabric;
 
     if (json.category_id == "MLB107292") {
-      [type, fabric] = getShirtData("MODEL", "SHIRT_MATERIAL");
+      [type, fabric] = getShirtData("SHIRT_MATERIAL", "MODEL");
+      console.log(type, fabric);
     } else {
       [type, fabric] = getShirtData("MAIN_MATERIAL", "GARMENT_TYPE");
     }
@@ -73,6 +74,7 @@ async function fetchAndStoreItem(itemId) {
       const permaLink = json.permalink;
       const title = json.title;
 
+      //Polo is not being uploaded to the db
       variation.attribute_combinations.forEach((attr) => {
         if (attr.name === "Cor") {
           color = attr.value_name;
