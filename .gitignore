@@ -23,3 +23,9 @@ pnpm-lock.yaml
 .vscode/  
 .idea/  
 .DS_Store  
+
+#next
+.next/
+node_modules/
+dist/
+*.log
