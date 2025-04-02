@@ -1,7 +1,7 @@
+require("dotenv").config({ path: "../../.env" }); 
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
-require("dotenv").config();
 const knex = require("knex");
 
 const db = knex({
@@ -106,7 +106,7 @@ async function fetchAndStoreItem(itemId) {
 
 app.get("/fetch-all-items", async (req, res) => {
   try {
-    const data = await fs.readFile(path.join(__dirname, "id.json"), "utf-8");
+    const data = await fs.readFile(path.join(__dirname, "../../id.json"), "utf-8");
     const itemIds = JSON.parse(data);
 
     await Promise.all(itemIds.map(fetchAndStoreItem));
