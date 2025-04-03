@@ -1,4 +1,4 @@
-require("dotenv").config({ path: "../../.env" }); 
+require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
@@ -71,6 +71,7 @@ async function fetchAndStoreItem(itemId) {
       const stock = variation.available_quantity;
       const sold = variation.sold_quantity;
       const userProductID = variation.user_product_id;
+      const generalID = json.id;
       const permaLink = json.permalink;
       const title = json.title;
 
@@ -85,6 +86,7 @@ async function fetchAndStoreItem(itemId) {
 
       const variationDetails = {
         product_id: userProductID,
+        general_id: generalID,
         type,
         fabric,
         stock,
@@ -106,7 +108,10 @@ async function fetchAndStoreItem(itemId) {
 
 app.get("/fetch-all-items", async (req, res) => {
   try {
-    const data = await fs.readFile(path.join(__dirname, "../../id.json"), "utf-8");
+    const data = await fs.readFile(
+      path.join(__dirname, "../../id.json"),
+      "utf-8"
+    );
     const itemIds = JSON.parse(data);
 
     await Promise.all(itemIds.map(fetchAndStoreItem));
@@ -164,9 +169,51 @@ app.get("/orders", async (req, res) => {
     }
   );
   const data = await response.json();
-
   console.log(data);
   res.json(data);
+});
+
+app.get("/fetch-item", async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://api.mercadolibre.com/items/MLB5026419706`,
+      {
+        headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch item ${itemId}: ${response.statusText}`);
+    }
+    const json = await response.json();
+    console.log(json.id);
+    res.send(json);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+app.get("/vendas-diarias", async (req, res) => {
+  try {
+    const hoje = new Date().toISOString().split("T")[0];
+    const url = `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=${hoje}T00:00:00.000-00:00&order.date_created.to=${hoje}T23:59:59.000-00:00`;
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro na API: ${response.statusText}`);
+    }
+
+    const dadosVendas = await response.json();
+    res.json(dadosVendas);
+  } catch (error) {
+    console.error("Erro na rota /vendas-diarias:", error);
+    res
+      .status(500)
+      .json({ erro: "Falha ao buscar vendas", detalhes: error.message });
+  }
 });
 
 // Graceful shutdown
