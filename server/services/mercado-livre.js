@@ -3,16 +3,11 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
 const knex = require("knex");
+const config = require("../../knexfile");
 
-const db = knex({
-  client: "postgresql",
-  connection: {
-    host: "localhost",
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  },
-});
+const env =
+  process.env.NODE_ENV !== "production" ? "development" : "production";
+const dbConnection = knex(config[env]);
 
 const app = express();
 
@@ -75,7 +70,6 @@ async function fetchAndStoreItem(itemId) {
       const permaLink = json.permalink;
       const title = json.title;
 
-      //Polo is not being uploaded to the db
       variation.attribute_combinations.forEach((attr) => {
         if (attr.name === "Cor") {
           color = attr.value_name;
@@ -96,7 +90,7 @@ async function fetchAndStoreItem(itemId) {
         URL: permaLink,
       };
 
-      await db("products").insert(variationDetails);
+      await dbConnection("products").insert(variationDetails);
     });
 
     await Promise.all(variationPromises);
@@ -128,37 +122,6 @@ app.get("/fetch-all-items", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
-
-app.post("/get-access-token", async (req, res) => {
-  try {
-    const headers = {
-      accept: "application/json",
-      "content-type": "application/x-www-form-urlencoded",
-    };
-
-    const data = new URLSearchParams({
-      grant_type: "authorization_code",
-      client_id: process.env.ID,
-      client_secret: process.env.KEY,
-      code: process.env.CODE,
-      redirect_uri: process.env.URI,
-    }).toString();
-
-    const response = await fetch(process.env.MERCADOLIVREURL, {
-      method: "POST",
-      headers: headers,
-      body: data,
-    });
-
-    const json = await response.json();
-    console.log(json);
-
-    res.json(json);
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
 });
 
 app.get("/orders", async (req, res) => {
@@ -216,6 +179,54 @@ app.get("/vendas-diarias", async (req, res) => {
   }
 });
 
+app.get("/vendas-ultima-hora", async (req, res) => {
+  try {
+    const agora = new Date();
+    const umaHoraAtras = new Date(agora.getTime() - 60 * 60 * 1000);
+
+    const fromDate = umaHoraAtras
+      .toISOString()
+      .replace(/\.\d{3}Z/, ".000-00:00");
+    const toDate = agora.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
+
+    const url = `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=${fromDate}&order.date_created.to=${toDate}`;
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro na API: ${response.statusText}`);
+    }
+
+    const dadosVendas = await response.json();
+
+    const salesData = dadosVendas.results.map((order) => {
+      const orderItem = order.order_items[0]; // First item in order
+      const sizeAttribute = orderItem.item.variation_attributes?.find(
+        (attr) => attr.id === "SIZE"
+      );
+
+      return {
+        product_id: orderItem.item.id,
+        title: orderItem.item.title, // Added title for better identification
+        size: sizeAttribute?.value_name || "N/A",
+        unit_price: orderItem.unit_price,
+        quantity_sold: orderItem.quantity,
+        sale_date: order.date_closed, // Using order closure date as sale timestamp
+      };
+    });
+
+    console.log("Vendas processadas:", salesData);
+    res.json(salesData);
+  } catch (error) {
+    console.error("Erro na rota /vendas-ultima-hora:", error);
+    res.status(500).json({
+      erro: "Falha ao buscar vendas",
+      detalhes: error.message,
+    });
+  }
+});
 // Graceful shutdown
 process.on("SIGINT", () => {
   db.destroy();
