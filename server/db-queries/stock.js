@@ -10,25 +10,23 @@ const dbConnection = knex(config[env]);
 
 export async function getFullStock() {
   const fullStock = await dbConnection("products").sum("stock");
-  
+
   console.log(fullStock);
   return fullStock;
 }
 
-async function getProductStock() {
+export async function getCottonStock() {
   const productStock = await dbConnection("products")
-    .select("general_id")
-    .select("fabric")
-    .select("type")
     .select("color")
-    .sum("stock as total_stock")
-    .groupBy("general_id", "fabric", "type", "color");
+    .sum("stock as stock")
+    .where("fabric", "Algodão")
+    .groupBy("color");
 
   console.log(productStock);
   return productStock;
 }
 
-async function getActiveProducts() {
+export async function getActiveProducts() {
   const activeProducts = await dbConnection("products")
     .count("id")
     .where("stock", ">", 0);
@@ -36,6 +34,4 @@ async function getActiveProducts() {
   console.log(activeProducts);
   return activeProducts;
 }
-getFullStock();
-getProductStock();
-getActiveProducts();
+
