@@ -1,11 +1,14 @@
-require("dotenv").config({ path: "../../.env" });
-const knex = require("knex");
-const config = require("../../knexfile");
+import dotenv from "dotenv";
+dotenv.config({ path: "../../.env" });
+
+import knex from "knex";
+import config from "../../knexfile.js";
+
 const env =
   process.env.NODE_ENV !== "production" ? "development" : "production";
 const dbConnection = knex(config[env]);
 
-async function getFullStock() {
+export async function getFullStock() {
   const fullStock = await dbConnection("products").sum("stock");
   
   console.log(fullStock);

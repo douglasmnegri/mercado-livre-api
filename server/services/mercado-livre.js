@@ -156,30 +156,8 @@ app.get("/fetch-item", async (req, res) => {
   }
 });
 
-app.get("/vendas-diarias", async (req, res) => {
-  try {
-    const hoje = new Date().toISOString().split("T")[0];
-    const url = `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=${hoje}T00:00:00.000-00:00&order.date_created.to=${hoje}T23:59:59.000-00:00`;
 
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erro na API: ${response.statusText}`);
-    }
-
-    const dadosVendas = await response.json();
-    res.json(dadosVendas);
-  } catch (error) {
-    console.error("Erro na rota /vendas-diarias:", error);
-    res
-      .status(500)
-      .json({ erro: "Falha ao buscar vendas", detalhes: error.message });
-  }
-});
-
-app.get("/vendas-ultima-hora", async (req, res) => {
+app.get("/sales", async (req, res) => {
   try {
     const agora = new Date();
     const umaHoraAtras = new Date(agora.getTime() - 60 * 60 * 1000);
@@ -209,11 +187,11 @@ app.get("/vendas-ultima-hora", async (req, res) => {
 
       return {
         product_id: orderItem.item.id,
-        title: orderItem.item.title, // Added title for better identification
+        title: orderItem.item.title, 
         size: sizeAttribute?.value_name || "N/A",
         unit_price: orderItem.unit_price,
         quantity_sold: orderItem.quantity,
-        sale_date: order.date_closed, // Using order closure date as sale timestamp
+        sale_date: order.date_closed, 
       };
     });
 
@@ -227,6 +205,7 @@ app.get("/vendas-ultima-hora", async (req, res) => {
     });
   }
 });
+
 // Graceful shutdown
 process.on("SIGINT", () => {
   db.destroy();

@@ -5,8 +5,9 @@ import { StockChart } from "../components/stock-chart"
 import { SalesChart } from "../components/sales-chart"
 import { TopProductsChart } from "./top-products-chart"
 import { ArrowUpIcon, ShirtIcon, PackageIcon, TrendingUpIcon } from "lucide-react"
-
+import axios from "axios"
 export default function Dashboard() {
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

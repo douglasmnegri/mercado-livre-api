@@ -2,17 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
-const knex = require("knex");
-
-const db = knex({
-  client: "postgresql",
-  connection: {
-    host: "localhost",
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  },
-});
 
 const app = express();
 
@@ -49,4 +38,10 @@ app.post("/get-access-token", async (req, res) => {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
