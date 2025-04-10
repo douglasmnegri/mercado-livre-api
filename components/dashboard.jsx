@@ -16,7 +16,7 @@ import {
   PackageIcon,
   TrendingUpIcon,
 } from "lucide-react";
-export default function Dashboard({ stock, activeProducts }) {
+export default function Dashboard({ stock, activeProducts, cottonStock }) {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -83,13 +83,13 @@ export default function Dashboard({ stock, activeProducts }) {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
                 <CardHeader>
-                  <CardTitle>T-shirt Stock (Quantity)</CardTitle>
+                  <CardTitle>Estoque de Camisetas de Algodão</CardTitle>
                   <CardDescription>
-                    Current inventory levels across all t-shirt styles
+                    Inventário somado de todas as peças e variação por tamanho
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <StockChart />
+                  <StockChart cottonStock={cottonStock} />
                 </CardContent>
               </Card>
               <Card className="col-span-3">

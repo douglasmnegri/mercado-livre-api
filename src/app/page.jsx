@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function Page() {
   const [stock, setStock] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
+  const [cottonStock, setCottonStock] = useState([]);
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
 
@@ -15,8 +16,10 @@ export default function Page() {
       })
       .then((data) => {
         console.log("📦 Dados recebidos:", data);
+        console.log(data.cottonStock);
         setStock(data.stock[0].sum);
-        setActiveProducts(data.activeProducts[0].count)
+        setActiveProducts(data.activeProducts[0].count);
+        setCottonStock(data.cottonStock);
       })
       .catch((err) => {
         console.error("❌ Erro ao buscar estoque:", err);
@@ -24,7 +27,7 @@ export default function Page() {
   }, []);
   return (
     <div>
-      <Dashboard stock={stock} activeProducts={activeProducts} />
+      <Dashboard stock={stock} activeProducts={activeProducts} cottonStock={cottonStock} />
     </div>
   );
 }

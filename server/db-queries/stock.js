@@ -18,9 +18,10 @@ export async function getFullStock() {
 export async function getCottonStock() {
   const productStock = await dbConnection("products")
     .select("color")
-    .sum("stock as stock")
+    .sum({ stock: "stock" })
     .where("fabric", "Algodão")
-    .groupBy("color");
+    .groupBy("color")
+    .orderBy("stock", "desc");
 
   console.log(productStock);
   return productStock;
