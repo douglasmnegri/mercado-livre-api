@@ -17,7 +17,38 @@ import {
   TrendingUpIcon,
 } from "lucide-react";
 import ChangeDataset from "./ui/button-fabric";
+import { use, useState, useEffect } from "react";
 export default function Dashboard({ stock, activeProducts, cottonStock }) {
+  const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
+  const [routeName, setRouteName] = useState("");
+  function onFabricChange(fabric) {
+    if (fabric === "poly") {
+      setSelectedFabric("Camiseta Poliéster");
+      setRouteName("polyester");
+    } else if (fabric == "cott") {
+      setSelectedFabric("Camiseta Algodão");
+      setRouteName("cotton");
+    } else {
+      setSelectedFabric("Camisa Polo");
+      setRouteName("polo");
+    }
+  }
+
+  useEffect(() => {
+    console.log("🔍 Fazendo requisição para o backend...");
+
+    fetch("http://localhost:3001/api/polyester")
+      .then((res) => {
+        console.log("✅ Resposta recebida do backend");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("📦 Dados recebidos:", data);
+      })
+      .catch((err) => {
+        console.error("❌ Erro ao buscar estoque:", err);
+      });
+  }, []);
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -92,7 +123,10 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
                         tamanho
                       </CardDescription>
                     </div>
-                    <ChangeDataset />
+                    <ChangeDataset
+                      fabricType={selectedFabric}
+                      onFabricChange={onFabricChange}
+                    />{" "}
                   </div>
                 </CardHeader>
                 <CardContent className="pl-2">

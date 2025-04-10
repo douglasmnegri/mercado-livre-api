@@ -27,6 +27,18 @@ export async function getCottonStock() {
   return productStock;
 }
 
+export async function getPolyesterStock() {
+  const productStock = await dbConnection("products")
+    .select("color")
+    .sum({ stock: "stock" })
+    .where("fabric", "Poliéster")
+    .groupBy("color")
+    .orderBy("stock", "desc");
+
+  console.log(productStock);
+  return productStock;
+}
+
 export async function getActiveProducts() {
   const activeProducts = await dbConnection("products")
     .count("id")
@@ -35,4 +47,3 @@ export async function getActiveProducts() {
   console.log(activeProducts);
   return activeProducts;
 }
-
