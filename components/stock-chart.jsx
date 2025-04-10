@@ -14,48 +14,6 @@ import {
   ChartTooltipValue,
 } from "./ui/chart";
 
-const data = [
-  {
-    name: "Classic White",
-    stock: 120,
-  },
-  {
-    name: "Vintage Black",
-    stock: 85,
-  },
-  {
-    name: "Navy Blue",
-    stock: 65,
-  },
-  {
-    name: "Heather Gray",
-    stock: 95,
-  },
-  {
-    name: "Forest Green",
-    stock: 40,
-  },
-  {
-    name: "Ruby Red",
-    stock: 55,
-  },
-  {
-    name: "Sunset Orange",
-    stock: 30,
-  },
-  {
-    name: "Royal Purple",
-    stock: 45,
-  },
-  {
-    name: "Teal Blue",
-    stock: 60,
-  },
-  {
-    name: "Charcoal",
-    stock: 70,
-  },
-];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {

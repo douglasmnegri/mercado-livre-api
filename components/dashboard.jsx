@@ -16,6 +16,7 @@ import {
   PackageIcon,
   TrendingUpIcon,
 } from "lucide-react";
+import ChangeDataset from "./ui/button-fabric";
 export default function Dashboard({ stock, activeProducts, cottonStock }) {
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -83,10 +84,16 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
                 <CardHeader>
-                  <CardTitle>Estoque de Camisetas de Algodão</CardTitle>
-                  <CardDescription>
-                    Inventário somado de todas as peças e variação por tamanho
-                  </CardDescription>
+                  <div className="flex justify-between">
+                    <div className="flex flex-col">
+                      <CardTitle>Estoque de Camisetas de Algodão</CardTitle>
+                      <CardDescription>
+                        Inventário somado de todas as peças e variação por
+                        tamanho
+                      </CardDescription>
+                    </div>
+                    <ChangeDataset />
+                  </div>
                 </CardHeader>
                 <CardContent className="pl-2">
                   <StockChart cottonStock={cottonStock} />
