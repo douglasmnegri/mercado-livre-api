@@ -61,12 +61,35 @@ export async function getActiveProducts() {
   return activeProducts;
 }
 
-export async function getLowStock() {
-  const activeProducts = await dbConnection("products")
-    .count("id")
-    .where("stock", ">", 0);
+export async function getOrderedProducts() {
+  const orderedProducts = await dbConnection("products")
+    .select(
+      "general_id as id",
+      dbConnection.raw("CONCAT(type, ' ', fabric) as name"),
+      "color",
+      "size",
+      "stock"
+    )
+    .whereNot("size", "XGG")
+    .orderBy([
+      { column: "general_id", order: "asc" },
+      {
+        column: dbConnection.raw(`
+          CASE size
+            WHEN 'P' THEN 1
+            WHEN 'M' THEN 2
+            WHEN 'G' THEN 3
+            WHEN 'GG' THEN 4
+            WHEN 'XGG' THEN 5
+            ELSE 6
+          END
+        `),
+        order: "asc",
+      },
+    ]);
 
-  console.log(activeProducts);
-  return activeProducts;
+  console.log(orderedProducts);
+  return orderedProducts;
 }
+
 

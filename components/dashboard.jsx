@@ -19,7 +19,9 @@ import {
 import ChangeDataset from "./ui/button-fabric";
 import { useState, useEffect } from "react";
 import { AnalyticsContent } from "../components/analytics-content";
-export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
+
+
+export default function Dashboard({ fullStock, activeProducts, orderedProducts }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
@@ -39,7 +41,6 @@ export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
 
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
-
     fetch(`http://localhost:3001/api/${routeName}`)
       .then((res) => {
         console.log("✅ Resposta recebida do backend");
@@ -164,7 +165,7 @@ export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
             </div>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
-            <AnalyticsContent />
+            <AnalyticsContent orderedProducts={orderedProducts} />
           </TabsContent>
           <TabsContent value="reports" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-1">
