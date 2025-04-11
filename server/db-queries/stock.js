@@ -32,6 +32,19 @@ export async function getPolyesterStock() {
     .select("color")
     .sum({ stock: "stock" })
     .where("fabric", "Poliéster")
+    .andWhere("type", "Camiseta")
+    .groupBy("color")
+    .orderBy("stock", "desc");
+
+  console.log(productStock);
+  return productStock;
+}
+
+export async function getPoloStock() {
+  const productStock = await dbConnection("products")
+    .select("color")
+    .sum({ stock: "stock" })
+    .where("type", "Polo")
     .groupBy("color")
     .orderBy("stock", "desc");
 
@@ -47,3 +60,5 @@ export async function getActiveProducts() {
   console.log(activeProducts);
   return activeProducts;
 }
+
+getPoloStock();

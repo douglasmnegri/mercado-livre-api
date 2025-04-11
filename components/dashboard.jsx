@@ -18,9 +18,11 @@ import {
 } from "lucide-react";
 import ChangeDataset from "./ui/button-fabric";
 import { use, useState, useEffect } from "react";
-export default function Dashboard({ stock, activeProducts, cottonStock }) {
+export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
-  const [routeName, setRouteName] = useState("");
+  const [routeName, setRouteName] = useState("cotton");
+  const [currentProduct, setCurrentProduct] = useState([]);
+
   function onFabricChange(fabric) {
     if (fabric === "poly") {
       setSelectedFabric("Camiseta Poliéster");
@@ -37,18 +39,19 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
 
-    fetch("http://localhost:3001/api/polyester")
+    fetch(`http://localhost:3001/api/${routeName}`)
       .then((res) => {
         console.log("✅ Resposta recebida do backend");
         return res.json();
       })
       .then((data) => {
         console.log("📦 Dados recebidos:", data);
+        setCurrentProduct(data);
       })
       .catch((err) => {
         console.error("❌ Erro ao buscar estoque:", err);
       });
-  }, []);
+  }, [routeName]);
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -71,7 +74,7 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
                   <ShirtIcon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stock} items</div>
+                  <div className="text-2xl font-bold">{fullStock} items</div>
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+20.1%</span>
@@ -117,7 +120,7 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
                 <CardHeader>
                   <div className="flex justify-between">
                     <div className="flex flex-col">
-                      <CardTitle>Estoque de Camisetas de Algodão</CardTitle>
+                      <CardTitle>Estoque de {selectedFabric}</CardTitle>
                       <CardDescription>
                         Inventário somado de todas as peças e variação por
                         tamanho
@@ -130,7 +133,7 @@ export default function Dashboard({ stock, activeProducts, cottonStock }) {
                   </div>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <StockChart cottonStock={cottonStock} />
+                  <StockChart cottonStock={currentProduct} />
                 </CardContent>
               </Card>
               <Card className="col-span-3">

@@ -1,7 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { fullStock, polyesterStock } from "./api/full-stock.js";
+import {
+  fullStock,
+  polyesterStock,
+  cottonStock,
+  poloStock,
+} from "./api/full-stock.js";
 
 dotenv.config();
 
@@ -13,6 +18,8 @@ app.use(express.json());
 
 app.get("/api/full-stock", fullStock);
 app.get("/api/polyester", polyesterStock);
+app.get("/api/cotton", cottonStock);
+app.get("/api/polo", poloStock);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend rodando em http://localhost:${PORT}`);

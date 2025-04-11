@@ -15,11 +15,8 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
-        console.log("📦 Dados recebidos:", data);
-        console.log(data.cottonStock);
-        setStock(data.stock[0].sum);
-        setActiveProducts(data.activeProducts[0].count);
-        setCottonStock(data.cottonStock);
+        console.log(data);
+        setStock(data[0].sum);
       })
       .catch((err) => {
         console.error("❌ Erro ao buscar estoque:", err);
@@ -27,7 +24,11 @@ export default function Page() {
   }, []);
   return (
     <div>
-      <Dashboard stock={stock} activeProducts={activeProducts} cottonStock={cottonStock} />
+      <Dashboard
+        fullStock={stock}
+        activeProducts={activeProducts}
+        cottonStock={cottonStock}
+      />
     </div>
   );
 }

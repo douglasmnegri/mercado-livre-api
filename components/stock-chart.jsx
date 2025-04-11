@@ -14,7 +14,6 @@ import {
   ChartTooltipValue,
 } from "./ui/chart";
 
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -33,15 +32,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const colorMap = {
-  Vermelho: "#FF0000", // vermelho vibrante
+  Vermelho: "#FF0000",
   "Verde Militar": "#4B5320",
   Marrom: "#8B4513",
   Laranja: "#FFA500",
   "Azul Bebê": "#00BFFF",
-  "Cinza Mescla": "#808080",
+  "Cinza Mescla": "#9F9F9F",
   "Rosa Bebê": "#FF69B4",
+  Rosa: "#FF69B4", // mesmo que bebê, como você pediu
   "Amarelo Canário": "#FFFF00",
-  "Azul marinho": "#000080",
+  "Azul-marinho": "#051057",
   "Azul-turquesa": "#40E0D0",
   Salmão: "#FA8072",
   "Cinza Chumbo": "#5A5A5A",
@@ -54,6 +54,14 @@ const colorMap = {
   Branco: "#f0ece8",
   "Verde-limão": "#ADFF2F",
   Roxo: "#800080",
+  Bordô: "#800000",
+  "Cinza Claro": "#D8D7D7",
+  "Amarelo Bebê": "#F8F0CB",
+  "Verde-claro": "#90EE90",
+  "Azul-celeste": "#87CEEB",
+  Verde: "#008000",
+  "Verde-escuro": "#006400",
+  Cinza: "#808080",
 };
 
 export function StockChart({ cottonStock }) {
@@ -61,7 +69,7 @@ export function StockChart({ cottonStock }) {
     <ResponsiveContainer width="100%" height={300}>
       <BarChart
         data={cottonStock}
-        margin={{ top: 50, right: 0, left: 0, bottom: 0 }}
+        margin={{ top: 40, right: 0, left: 0, bottom: 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis
@@ -70,7 +78,8 @@ export function StockChart({ cottonStock }) {
           fontSize={12}
           tickLine={false}
           axisLine={false}
-          tick={{ fill: "var(--foreground)" }}
+          // tick={{ fill: "var(--foreground)" }}
+          tick={false}
           tickMargin={8}
         />
         <YAxis
