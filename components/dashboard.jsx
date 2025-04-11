@@ -17,7 +17,8 @@ import {
   TrendingUpIcon,
 } from "lucide-react";
 import ChangeDataset from "./ui/button-fabric";
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { AnalyticsContent } from "../components/analytics-content";
 export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
@@ -163,32 +164,7 @@ export default function Dashboard({ fullStock, activeProducts, cottonStock }) {
             </div>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <Card className="col-span-4">
-                <CardHeader>
-                  <CardTitle>Analytics Overview</CardTitle>
-                  <CardDescription>
-                    Detailed analytics will appear here
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center border rounded-md">
-                    <p className="text-muted-foreground">Analytics content</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="col-span-3">
-                <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
-                  <CardDescription>Key performance indicators</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center border rounded-md">
-                    <p className="text-muted-foreground">Metrics content</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <AnalyticsContent />
           </TabsContent>
           <TabsContent value="reports" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-1">

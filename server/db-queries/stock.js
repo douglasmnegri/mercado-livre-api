@@ -61,4 +61,12 @@ export async function getActiveProducts() {
   return activeProducts;
 }
 
-getPoloStock();
+export async function getLowStock() {
+  const activeProducts = await dbConnection("products")
+    .count("id")
+    .where("stock", ">", 0);
+
+  console.log(activeProducts);
+  return activeProducts;
+}
+
