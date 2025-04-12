@@ -64,7 +64,8 @@ export async function getActiveProducts() {
 export async function getOrderedProducts() {
   const orderedProducts = await dbConnection("products")
     .select(
-      "general_id as id",
+      "id",
+      "general_id as gen_id",
       dbConnection.raw("CONCAT(type, ' ', fabric) as name"),
       "color",
       "size",

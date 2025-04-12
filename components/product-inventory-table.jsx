@@ -1,6 +1,4 @@
 "use client";
-
-import * as React from "react";
 import {
   Table,
   TableBody,
@@ -10,8 +8,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 // Color mapping from names to hex codes
 const colorMap = {
@@ -52,88 +51,159 @@ const colorMap = {
   Navy: "#051057",
 };
 
+// const minStock = [
+//   { size: "P", stock: "10" },
+//   { size: "M", stock: "20" },
+//   { size: "G", stock: "40" },
+//   { size: "GG", stock: "30" },
+// ];
+
+const minStock = { P: "10", M: "20", G: "40", GG: "30" };
+
 // Function to determine restock status
-function getRestockStatus(stock) {
-  if (stock <= 5) {
-    return { status: "Urgent", variant: "destructive" };
-  } else if (stock <= 15) {
-    return { status: "Low", variant: "secondary" };
+function getRestockStatus(size, stock) {
+  if (stock < minStock[size] * 0.2) {
+    return { status: "Urgente", variant: "destructive" };
+  } else if (stock < minStock[size] * 0.6) {
+    return { status: "Atenção", variant: "secondary" };
   } else {
-    return { status: "Good", variant: "outline" };
+    return { status: "Estável", variant: "outline" };
   }
 }
 
 function getColorHex(colorName) {
-  return colorMap[colorName] || "#CCCCCC"; 
+  return colorMap[colorName] || "#CCCCCC";
 }
 
 export function ProductInventoryTable({ orderedProducts }) {
-  
-  const [products] = React.useState([
-    { id: "1", name: "Cotton T-Shirt", color: "White", size: "S", stock: 3 },
-    { id: "2", name: "Cotton T-Shirt", color: "White", size: "M", stock: 12 },
-    { id: "3", name: "Cotton T-Shirt", color: "White", size: "L", stock: 25 },
-    { id: "4", name: "Cotton T-Shirt", color: "Black", size: "S", stock: 8 },
-    { id: "5", name: "Cotton T-Shirt", color: "Black", size: "M", stock: 20 },
-    { id: "6", name: "Cotton T-Shirt", color: "Black", size: "L", stock: 15 },
-    { id: "7", name: "Polyester T-Shirt", color: "Red", size: "S", stock: 5 },
-    { id: "8", name: "Polyester T-Shirt", color: "Red", size: "M", stock: 18 },
-    { id: "9", name: "Polyester T-Shirt", color: "Red", size: "L", stock: 22 },
-    { id: "10", name: "Polo Shirt", color: "Navy", size: "S", stock: 7 },
-    { id: "11", name: "Polo Shirt", color: "Navy", size: "M", stock: 14 },
-    { id: "12", name: "Polo Shirt", color: "Navy", size: "L", stock: 30 },
-  ]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(30); // Show 30 products per page
+  const tableRef = useRef(null);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(orderedProducts.length / productsPerPage);
+
+  // Get current products
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = orderedProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  // Scroll to top of table
+  const scrollToTable = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Change page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      scrollToTable();
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      scrollToTable();
+    }
+  };
+
+  // Reset to page 1 if products change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [orderedProducts]);
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product Name</TableHead>
-            <TableHead>Color</TableHead>
-            <TableHead>Color Preview</TableHead>
-            <TableHead>Size</TableHead>
-            <TableHead className="text-right">Stock</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orderedProducts.map((product) => {
-            const restockInfo = getRestockStatus(product.stock);
-            const colorHex = getColorHex(product.color);
+    <div className="space-y-4">
+      <div className="rounded-md border" ref={tableRef}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Product Name</TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead>Color Preview</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead className="text-right">Stock</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentProducts.map((product) => {
+              const restockInfo = getRestockStatus(product.size, product.stock);
+              const colorHex = getColorHex(product.color);
 
-            return (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.color}</TableCell>
-                <TableCell>
-                  <div
-                    className="h-6 w-6 rounded-full border border-gray-200"
-                    style={{ backgroundColor: colorHex }}
-                    title={`${product.color} (${colorHex})`}
-                  />
-                </TableCell>
-                <TableCell>{product.size}</TableCell>
-                <TableCell className="text-right">
-                  {product.stock <= 5 ? (
-                    <span className="flex items-center justify-end gap-1 text-red-500">
-                      <AlertCircle className="h-4 w-4" />
-                      {product.stock}
-                    </span>
-                  ) : (
-                    product.stock
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={restockInfo.variant}>
-                    {restockInfo.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+              return (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.color}</TableCell>
+                  <TableCell>
+                    <div
+                      className="h-6 w-6 rounded-full border border-gray-200"
+                      style={{ backgroundColor: colorHex }}
+                      title={`${product.color} (${colorHex})`}
+                    />
+                  </TableCell>
+                  <TableCell>{product.size}</TableCell>
+                  <TableCell className="text-right">
+                    {product.stock <= 5 ? (
+                      <span className="flex items-center justify-end gap-1 text-red-500">
+                        <AlertCircle className="h-4 w-4" />
+                        {product.stock}
+                      </span>
+                    ) : (
+                      product.stock
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={restockInfo.variant}>
+                      {restockInfo.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {indexOfFirstProduct + 1}-
+            {Math.min(indexOfLastProduct, orderedProducts.length)} of{" "}
+            {orderedProducts.length} products
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            <div className="text-sm font-medium">
+              Page {currentPage} of {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
