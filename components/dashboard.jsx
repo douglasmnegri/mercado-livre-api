@@ -20,12 +20,16 @@ import ChangeDataset from "./ui/button-fabric";
 import { useState, useEffect } from "react";
 import { AnalyticsContent } from "../components/analytics-content";
 
-
-export default function Dashboard({ fullStock, activeProducts, orderedProducts }) {
+export default function Dashboard({
+  fullStock,
+  activeProducts,
+  orderedProducts,
+  bestSellingProducts,
+}) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
-  
+
   function onFabricChange(fabric) {
     if (fabric === "poly") {
       setSelectedFabric("Camiseta Poliéster");
@@ -38,8 +42,6 @@ export default function Dashboard({ fullStock, activeProducts, orderedProducts }
       setRouteName("polo");
     }
   }
-
-  
 
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");

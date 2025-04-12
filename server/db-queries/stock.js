@@ -104,6 +104,21 @@ export async function getOrderedProducts() {
       },
     ]);
 
-  console.log(orderedProducts);
   return orderedProducts;
 }
+
+export async function getBestSellingProducts() {
+  const bestProducts = await dbConnection("products")
+    .select(
+      "general_id",
+      dbConnection.raw("CONCAT(type, ' ', fabric, ' ', color) as name"),
+      dbConnection.raw("SUM(sold) as units")
+    )
+    .groupBy("general_id", "type", "fabric", "color")
+    .orderBy("units", "desc")
+    .limit(7);
+  console.log(bestProducts);
+  return bestProducts;
+}
+
+getBestSellingProducts();

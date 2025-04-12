@@ -13,41 +13,35 @@ import {
   ChartTooltipValue,
 } from "./ui/chart";
 
+// Updated data with only units, sorted by units sold (descending)
 const data = [
   {
     name: "Vintage Black Tee",
-    revenue: 4200,
     units: 210,
   },
   {
     name: "Classic White Tee",
-    revenue: 3800,
     units: 190,
   },
   {
-    name: "Navy Blue Hoodie",
-    revenue: 3100,
-    units: 124,
-  },
-  {
     name: "Heather Gray Tee",
-    revenue: 2700,
     units: 135,
   },
   {
+    name: "Navy Blue Hoodie",
+    units: 124,
+  },
+  {
+    name: "Teal Logo Cap",
+    units: 120,
+  },
+  {
     name: "Ruby Red Tee",
-    revenue: 2200,
     units: 110,
   },
   {
     name: "Black Zip Hoodie",
-    revenue: 2100,
     units: 84,
-  },
-  {
-    name: "Teal Logo Cap",
-    revenue: 1800,
-    units: 120,
   },
 ];
 
@@ -58,9 +52,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         <ChartTooltipContent>
           <ChartTooltipLabel>{label}</ChartTooltipLabel>
           <ChartTooltipValue>
-            Revenue: ${payload[0].value.toLocaleString()}
+            Units Sold: {payload[0].value.toLocaleString()}
           </ChartTooltipValue>
-          <ChartTooltipValue>Units Sold: 40</ChartTooltipValue>
         </ChartTooltipContent>
       </ChartTooltip>
     );
@@ -88,7 +81,6 @@ export function TopProductsChart() {
           fontSize={12}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `$${value}`}
           tick={{ fill: "var(--foreground)" }}
         />
         <YAxis
@@ -103,19 +95,11 @@ export function TopProductsChart() {
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar
-          dataKey="revenue"
-          fill="hsl(var(--chart-3))"
-          radius={[0, 4, 4, 0]}
-          name="Revenue"
-          barSize={20}
-        />
-        <Bar
           dataKey="units"
           fill="hsl(var(--chart-6))"
           radius={[0, 4, 4, 0]}
           name="Units Sold"
           barSize={20}
-          hide={true} // Hidden from chart but available for tooltip
         />
       </BarChart>
     </ResponsiveContainer>

@@ -1,10 +1,11 @@
-  import {
+import {
   getFullStock,
   getActiveProducts,
   getCottonStock,
   getPolyesterStock,
   getPoloStock,
-  getOrderedProducts
+  getOrderedProducts,
+  getBestSellingProducts,
 } from "../db-queries/stock.js";
 
 export async function fullStock(req, res) {
@@ -52,6 +53,16 @@ export async function orderedProducts(req, res) {
   try {
     const orderedProducts = await getOrderedProducts();
     res.json(orderedProducts);
+  } catch (error) {
+    console.error("Erro ao buscar estoque:", error);
+    res.status(500).json({ error: "Erro ao buscar estoque" });
+  }
+}
+
+export async function bestSellingProducts(req, res) {
+  try {
+    const bestSellingProducts = await getBestSellingProducts();
+    res.json(bestSellingProducts);
   } catch (error) {
     console.error("Erro ao buscar estoque:", error);
     res.status(500).json({ error: "Erro ao buscar estoque" });
