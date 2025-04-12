@@ -61,6 +61,15 @@ export async function getActiveProducts() {
   return activeProducts;
 }
 
+export async function getUnitsSold() {
+  const unitsSold = await dbConnection("products").select(
+    dbConnection.raw("SUM(sold) as total_units")
+  );
+
+  console.log(unitsSold);
+  return unitsSold;
+}
+
 export async function getOrderedProducts() {
   const orderedProducts = await dbConnection("products")
     .select(
@@ -120,5 +129,3 @@ export async function getBestSellingProducts() {
   console.log(bestProducts);
   return bestProducts;
 }
-
-getBestSellingProducts();

@@ -13,7 +13,6 @@ import {
   ChartTooltipValue,
 } from "./ui/chart";
 
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -62,12 +61,11 @@ export function TopProductsChart({ bestSellingProducts }) {
           axisLine={false}
           width={120}
           tick={{ fill: "var(--foreground)" }}
-          
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar
           dataKey="units"
-           fill="#043763"
+          fill="#043763"
           radius={[0, 4, 4, 0]}
           name="Units Sold"
           barSize={20}

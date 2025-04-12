@@ -7,7 +7,7 @@ export default function Page() {
   const [activeProducts, setActiveProducts] = useState([]);
   const [orderedProducts, setOrderedProducts] = useState([]);
   const [bestSellingProducts, setBestSellingProducts] = useState([]);
-
+  const [unitsSold, setUnitsSold] = useState([]);
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
     fetch("http://localhost:3001/api/full-stock")
@@ -55,6 +55,22 @@ export default function Page() {
         console.error("❌ Erro ao buscar estoque:", err);
       });
   }, []);
+
+  useEffect(() => {
+    console.log("🔍 Fazendo requisição para o backend...");
+    fetch("http://localhost:3001/api/units-sold")
+      .then((res) => {
+        console.log("✅ Resposta recebida do backend");
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setUnitsSold(data);
+      })
+      .catch((err) => {
+        console.error("❌ Erro ao buscar estoque:", err);
+      });
+  }, []);
   return (
     <div>
       <Dashboard
@@ -62,6 +78,7 @@ export default function Page() {
         activeProducts={activeProducts}
         orderedProducts={orderedProducts}
         bestSellingProducts={bestSellingProducts}
+        unitsSold={unitsSold}
       />
     </div>
   );

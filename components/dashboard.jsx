@@ -25,10 +25,13 @@ export default function Dashboard({
   activeProducts,
   orderedProducts,
   bestSellingProducts,
+  unitsSold,
 }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
+
+  console.log(unitsSold[0].total_units)
 
   function onFabricChange(fabric) {
     if (fabric === "poly") {
@@ -91,12 +94,12 @@ export default function Dashboard({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Total Sales
+                    Total Unit Sales
                   </CardTitle>
                   <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$45,231.89</div>
+                  <div className="text-2xl font-bold">{unitsSold[0].total_units}</div>
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+15.3%</span>

@@ -8,6 +8,7 @@ import {
   poloStock,
   orderedProducts,
   bestSellingProducts,
+  unitsSold,
 } from "./api/full-stock.js";
 
 dotenv.config();
@@ -24,7 +25,7 @@ app.get("/api/cotton", cottonStock);
 app.get("/api/polo", poloStock);
 app.get("/api/ordered-products", orderedProducts);
 app.get("/api/best-selling-products", bestSellingProducts);
-
+app.get("/api/units-sold", unitsSold);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
