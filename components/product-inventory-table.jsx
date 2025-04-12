@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 // Color mapping from names to hex codes
 const colorMap = {
@@ -62,13 +63,12 @@ function getRestockStatus(stock) {
   }
 }
 
-// Function to get color hex code from name
 function getColorHex(colorName) {
-  return colorMap[colorName] || "#CCCCCC"; // Default gray if color not found
+  return colorMap[colorName] || "#CCCCCC"; 
 }
 
-export function ProductInventoryTable() {
-  // Sample data - in a real app, this would come from your API
+export function ProductInventoryTable({ orderedProducts }) {
+  
   const [products] = React.useState([
     { id: "1", name: "Cotton T-Shirt", color: "White", size: "S", stock: 3 },
     { id: "2", name: "Cotton T-Shirt", color: "White", size: "M", stock: 12 },
@@ -98,7 +98,7 @@ export function ProductInventoryTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => {
+          {orderedProducts.map((product) => {
             const restockInfo = getRestockStatus(product.stock);
             const colorHex = getColorHex(product.color);
 

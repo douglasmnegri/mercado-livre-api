@@ -25,7 +25,7 @@ export default function Dashboard({ fullStock, activeProducts, orderedProducts }
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
-
+  
   function onFabricChange(fabric) {
     if (fabric === "poly") {
       setSelectedFabric("Camiseta Poliéster");
@@ -38,6 +38,8 @@ export default function Dashboard({ fullStock, activeProducts, orderedProducts }
       setRouteName("polo");
     }
   }
+
+  
 
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");

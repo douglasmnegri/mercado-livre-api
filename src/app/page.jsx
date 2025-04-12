@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export default function Page() {
   const [stock, setStock] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
-  const [orderedProcuts, setOrderedProducts] = useState([]);
+  const [orderedProducts, setOrderedProducts] = useState([]);
 
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
@@ -32,7 +32,7 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
-        console.log("ORDERED PRODUCTS", data);
+        setOrderedProducts(data);
       })
       .catch((err) => {
         console.error("❌ Erro ao buscar estoque:", err);
@@ -43,6 +43,7 @@ export default function Page() {
       <Dashboard
         fullStock={stock}
         activeProducts={activeProducts}
+        orderedProducts={orderedProducts}
       />
     </div>
   );

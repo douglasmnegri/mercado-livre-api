@@ -71,6 +71,21 @@ export async function getOrderedProducts() {
       "stock"
     )
     .whereNot("size", "XGG")
+    .andWhere((builder) => {
+      builder
+        .where(function () {
+          this.where("size", "P").andWhere("stock", "<=", 5);
+        })
+        .orWhere(function () {
+          this.where("size", "M").andWhere("stock", "<=", 10);
+        })
+        .orWhere(function () {
+          this.where("size", "G").andWhere("stock", "<=", 20);
+        })
+        .orWhere(function () {
+          this.where("size", "GG").andWhere("stock", "<=", 30);
+        });
+    })
     .orderBy([
       { column: "general_id", order: "asc" },
       {
@@ -91,5 +106,3 @@ export async function getOrderedProducts() {
   console.log(orderedProducts);
   return orderedProducts;
 }
-
-
