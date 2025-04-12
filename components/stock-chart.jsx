@@ -89,7 +89,7 @@ export function StockChart({ cottonStock }) {
           axisLine={false}
           tickFormatter={(value) => `${value}`}
           tick={{ fill: "var(--foreground)" }}
-          ticks={[0, 50, 100, 150, 200]} // Adicione esta linha
+          ticks={[0, 50, 100, 150, 200]}
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar

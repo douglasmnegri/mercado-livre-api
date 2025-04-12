@@ -150,7 +150,7 @@ export default function Dashboard({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <TopProductsChart />
+                  <TopProductsChart bestSellingProducts={bestSellingProducts} />
                 </CardContent>
               </Card>
             </div>
