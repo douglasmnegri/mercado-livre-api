@@ -64,7 +64,7 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
+        console.log(data[0].total_units);
         setUnitsSold(data);
       })
       .catch((err) => {

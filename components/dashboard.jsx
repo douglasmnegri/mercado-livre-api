@@ -30,8 +30,7 @@ export default function Dashboard({
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
-
-  console.log(unitsSold[0].total_units)
+  console.log(unitsSold?.[0]?.total_units, "Hey");
 
   function onFabricChange(fabric) {
     if (fabric === "poly") {
@@ -99,7 +98,14 @@ export default function Dashboard({
                   <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{unitsSold[0].total_units}</div>
+                  {Array.isArray(unitsSold) && unitsSold.length > 0 ? (
+                    <div className="text-2xl font-bold">
+                      {unitsSold[0].total_units}
+                    </div>
+                  ) : (
+                    <div className="text-2xl font-bold">Carregando...</div>
+                  )}
+
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+15.3%</span>

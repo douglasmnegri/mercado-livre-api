@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 // Color mapping from names to hex codes
@@ -51,13 +52,6 @@ const colorMap = {
   Navy: "#051057",
 };
 
-// const minStock = [
-//   { size: "P", stock: "10" },
-//   { size: "M", stock: "20" },
-//   { size: "G", stock: "40" },
-//   { size: "GG", stock: "30" },
-// ];
-
 const minStock = { P: "10", M: "20", G: "40", GG: "30" };
 
 // Function to determine restock status
@@ -79,6 +73,7 @@ export function ProductInventoryTable({ orderedProducts }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(30); // Show 30 products per page
   const tableRef = useRef(null);
+  const [stockInputs, setStockInputs] = useState({});
 
   // Calculate total pages
   const totalPages = Math.ceil(orderedProducts.length / productsPerPage);
@@ -113,6 +108,34 @@ export function ProductInventoryTable({ orderedProducts }) {
     }
   };
 
+  // Handle stock input change
+  const handleStockInputChange = (productId, value) => {
+    // Only allow numbers
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setStockInputs({
+      ...stockInputs,
+      [productId]: numericValue,
+    });
+  };
+
+  // Handle add button click
+  const handleAddButtonClick = (productId) => {
+    const amount = Number.parseInt(stockInputs[productId] || 0, 10);
+
+    if (amount > 0) {
+      // Log the action (in a real app, this would call your API)
+      console.log(
+        `Button clicked for product ${productId} with amount: ${amount}`
+      );
+
+      // Clear the input
+      setStockInputs({
+        ...stockInputs,
+        [productId]: "",
+      });
+    }
+  };
+
   // Reset to page 1 if products change
   useEffect(() => {
     setCurrentPage(1);
@@ -130,6 +153,7 @@ export function ProductInventoryTable({ orderedProducts }) {
               <TableHead>Size</TableHead>
               <TableHead className="text-right">Stock</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Add Units</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,6 +187,29 @@ export function ProductInventoryTable({ orderedProducts }) {
                     <Badge variant={restockInfo.variant}>
                       {restockInfo.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={stockInputs[product.id] || ""}
+                        onChange={(e) =>
+                          handleStockInputChange(product.id, e.target.value)
+                        }
+                        className="w-16 h-8"
+                        placeholder="0"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-2 py-0"
+                        onClick={() => handleAddButtonClick(product.id)}
+                        disabled={!stockInputs[product.id]}
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Add
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
