@@ -65,15 +65,22 @@ function getRestockStatus(size, stock) {
   }
 }
 
+function getStockSuggestion(size, stock) {
+  const min = parseInt(minStock[size], 10);
+  return Math.ceil(Math.max(0, min - stock) / 5) * 5;
+}
+
 function getColorHex(colorName) {
   return colorMap[colorName] || "#CCCCCC";
 }
 
 export function ProductInventoryTable({ orderedProducts }) {
+  console.log("ORDER PRODUCTS", orderedProducts);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(30); // Show 30 products per page
   const tableRef = useRef(null);
   const [stockInputs, setStockInputs] = useState({});
+  const [buttonState, setButtonState] = useState(true);
 
   // Calculate total pages
   const totalPages = Math.ceil(orderedProducts.length / productsPerPage);
@@ -86,14 +93,12 @@ export function ProductInventoryTable({ orderedProducts }) {
     indexOfLastProduct
   );
 
-  // Scroll to top of table
   const scrollToTable = () => {
     if (tableRef.current) {
       tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
-  // Change page
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -110,7 +115,6 @@ export function ProductInventoryTable({ orderedProducts }) {
 
   // Handle stock input change
   const handleStockInputChange = (productId, value) => {
-    // Only allow numbers
     const numericValue = value.replace(/[^0-9]/g, "");
     setStockInputs({
       ...stockInputs,
@@ -118,17 +122,14 @@ export function ProductInventoryTable({ orderedProducts }) {
     });
   };
 
-  // Handle add button click
   const handleAddButtonClick = (productId) => {
+    buttonState == true ? setButtonState(false) : setButtonState(true);
     const amount = Number.parseInt(stockInputs[productId] || 0, 10);
-
     if (amount > 0) {
-      // Log the action (in a real app, this would call your API)
       console.log(
         `Button clicked for product ${productId} with amount: ${amount}`
       );
 
-      // Clear the input
       setStockInputs({
         ...stockInputs,
         [productId]: "",
@@ -191,23 +192,26 @@ export function ProductInventoryTable({ orderedProducts }) {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Input
+                        disabled={buttonState}
                         type="text"
                         value={stockInputs[product.id] || ""}
                         onChange={(e) =>
                           handleStockInputChange(product.id, e.target.value)
                         }
                         className="w-16 h-8"
-                        placeholder="0"
+                        placeholder={getStockSuggestion(
+                          product.size,
+                          product.stock
+                        ).toString()}
                       />
                       <Button
                         size="sm"
                         variant="outline"
                         className="h-8 px-2 py-0"
                         onClick={() => handleAddButtonClick(product.id)}
-                        disabled={!stockInputs[product.id]}
                       >
-                        <Plus className="h-3.5 w-3.5 mr-1" />
-                        Add
+                        <Plus className="h-3.5 w-3.5 " />
+                        {buttonState ? "Editar" : "Salvar"}
                       </Button>
                     </div>
                   </TableCell>
