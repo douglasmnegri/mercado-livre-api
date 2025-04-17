@@ -71,36 +71,27 @@ export async function getUnitsSold() {
 }
 
 export async function getOrderedProducts() {
-  const orderedProducts = await dbConnection("products")
+  const orderedProducts = await dbConnection("products as p")
+    .join("min_stock as m", "p.size", "m.size")
     .select(
-      "id",
-      "general_id as gen_id",
-      dbConnection.raw("CONCAT(type, ' ', fabric) as name"),
-      "color",
-      "size",
-      "stock"
+      "p.id",
+      "p.general_id as gen_id",
+      dbConnection.raw("CONCAT(p.type, ' ', p.fabric) as name"),
+      "p.color",
+      "p.size",
+      "p.stock",
+      "m.min as min_stock",
+      dbConnection.raw(`
+        CEIL(GREATEST(0, m.min - p.stock) / 5.0) * 5 as stock_suggestion
+      `)
     )
-    .whereNot("size", "XGG")
-    .andWhere((builder) => {
-      builder
-        .where(function () {
-          this.where("size", "P").andWhere("stock", "<=", 5);
-        })
-        .orWhere(function () {
-          this.where("size", "M").andWhere("stock", "<=", 10);
-        })
-        .orWhere(function () {
-          this.where("size", "G").andWhere("stock", "<=", 20);
-        })
-        .orWhere(function () {
-          this.where("size", "GG").andWhere("stock", "<=", 30);
-        });
-    })
+    .where("p.size", "!=", "XGG")
+    .andWhereRaw("m.min - p.stock > 0") // só produtos com sugestão
     .orderBy([
-      { column: "general_id", order: "asc" },
+      { column: "p.general_id", order: "asc" },
       {
         column: dbConnection.raw(`
-          CASE size
+          CASE p.size
             WHEN 'P' THEN 1
             WHEN 'M' THEN 2
             WHEN 'G' THEN 3
@@ -113,6 +104,7 @@ export async function getOrderedProducts() {
       },
     ]);
 
+  console.log(orderedProducts);
   return orderedProducts;
 }
 
@@ -130,19 +122,9 @@ export async function getBestSellingProducts() {
   return bestProducts;
 }
 
-export async function getStockSuggestions() {
-  const results = await dbConnection("products as p")
-    .join("min_stock as m", "p.size", "m.size")
-    .select(
-      "p.product_id",
-      "p.size",
-      "p.stock",
-      "m.min as min_stock",
-      dbConnection.raw(`
-        CEIL(GREATEST(0, m.min - p.stock) / 5.0) * 5 as stock_suggestion
-      `)
-    );
+export async function getMinimumStock() {
+  const minStock = await dbConnection("min_stock");
 
-  return results;
+  console.log(minStock);
+  return minStock;
 }
- getStockSuggestions();

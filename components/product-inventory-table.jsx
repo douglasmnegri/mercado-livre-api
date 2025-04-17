@@ -45,47 +45,39 @@ const colorMap = {
   Verde: "#008000",
   "Verde-escuro": "#006400",
   Cinza: "#808080",
-
-  White: "#f0ece8",
-  Black: "#000000",
-  Red: "#FF0000",
-  Navy: "#051057",
 };
-
-const minStock = { P: "10", M: "20", G: "40", GG: "30" };
-
-// Function to determine restock status
-function getRestockStatus(size, stock) {
-  if (stock < minStock[size] * 0.2) {
-    return { status: "Urgente", variant: "destructive" };
-  } else if (stock < minStock[size] * 0.6) {
-    return { status: "Atenção", variant: "secondary" };
-  } else {
-    return { status: "Estável", variant: "outline" };
-  }
-}
-
-function getStockSuggestion(size, stock) {
-  const min = parseInt(minStock[size], 10);
-  return Math.ceil(Math.max(0, min - stock) / 5) * 5;
-}
 
 function getColorHex(colorName) {
   return colorMap[colorName] || "#CCCCCC";
 }
 
-export function ProductInventoryTable({ orderedProducts }) {
-  console.log("ORDER PRODUCTS", orderedProducts);
+export function ProductInventoryTable({ orderedProducts, minStock }) {
+  function getRestockStatus(size, stock) {
+    const item = minStock.find((entry) => entry.size === size);
+
+    if (!item) return null;
+
+    const { min } = item;
+
+    if (stock <= min * 0.2) {
+      return { status: "Urgente", variant: "destructive" };
+    } else if (stock <= min * 0.6) {
+      return { status: "Atenção", variant: "secondary" };
+    } else {
+      return { status: "Estável", variant: "outline" };
+    }
+  }
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(30); // Show 30 products per page
+  const [productsPerPage] = useState(30);
   const tableRef = useRef(null);
+
+  // Estado para inputs personalizados
   const [stockInputs, setStockInputs] = useState({});
-  const [buttonState, setButtonState] = useState(true);
+  // Estado para controlar edição individual de inputs
+  const [editStates, setEditStates] = useState({});
 
-  // Calculate total pages
   const totalPages = Math.ceil(orderedProducts.length / productsPerPage);
-
-  // Get current products
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = orderedProducts.slice(
@@ -113,34 +105,20 @@ export function ProductInventoryTable({ orderedProducts }) {
     }
   };
 
-  // Handle stock input change
   const handleStockInputChange = (productId, value) => {
     const numericValue = value.replace(/[^0-9]/g, "");
-    setStockInputs({
-      ...stockInputs,
+    setStockInputs((prev) => ({
+      ...prev,
       [productId]: numericValue,
-    });
+    }));
   };
 
-  const handleAddButtonClick = (productId) => {
-    buttonState == true ? setButtonState(false) : setButtonState(true);
-    const amount = Number.parseInt(stockInputs[productId] || 0, 10);
-    if (amount > 0) {
-      console.log(
-        `Button clicked for product ${productId} with amount: ${amount}`
-      );
-
-      setStockInputs({
-        ...stockInputs,
-        [productId]: "",
-      });
-    }
+  const toggleEditState = (productId) => {
+    setEditStates((prev) => ({
+      ...prev,
+      [productId]: !prev[productId], // Alterna apenas o estado desse produto
+    }));
   };
-
-  // Reset to page 1 if products change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [orderedProducts]);
 
   return (
     <div className="space-y-4">
@@ -161,6 +139,7 @@ export function ProductInventoryTable({ orderedProducts }) {
             {currentProducts.map((product) => {
               const restockInfo = getRestockStatus(product.size, product.stock);
               const colorHex = getColorHex(product.color);
+              const isEditing = editStates[product.id] || false;
 
               return (
                 <TableRow key={product.id}>
@@ -192,26 +171,23 @@ export function ProductInventoryTable({ orderedProducts }) {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Input
-                        disabled={buttonState}
+                        disabled={!isEditing}
                         type="text"
-                        value={stockInputs[product.id] || ""}
+                        value={stockInputs[product.id] ?? ""}
                         onChange={(e) =>
                           handleStockInputChange(product.id, e.target.value)
                         }
                         className="w-16 h-8"
-                        placeholder={getStockSuggestion(
-                          product.size,
-                          product.stock
-                        ).toString()}
+                        placeholder={product.stock_suggestion.toString()}
                       />
                       <Button
                         size="sm"
                         variant="outline"
                         className="h-8 px-2 py-0"
-                        onClick={() => handleAddButtonClick(product.id)}
+                        onClick={() => toggleEditState(product.id)}
                       >
-                        <Plus className="h-3.5 w-3.5 " />
-                        {buttonState ? "Editar" : "Salvar"}
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        {isEditing ? "Salvar" : "Editar"}
                       </Button>
                     </div>
                   </TableCell>

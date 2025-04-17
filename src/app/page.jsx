@@ -8,6 +8,8 @@ export default function Page() {
   const [orderedProducts, setOrderedProducts] = useState([]);
   const [bestSellingProducts, setBestSellingProducts] = useState([]);
   const [unitsSold, setUnitsSold] = useState([]);
+  const [minStock, setMinStock] = useState([]);
+
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
     fetch("http://localhost:3001/api/full-stock")
@@ -71,6 +73,22 @@ export default function Page() {
         console.error("❌ Erro ao buscar estoque:", err);
       });
   }, []);
+
+  useEffect(() => {
+    console.log("🔍 Fazendo requisição para o backend...");
+    fetch("http://localhost:3001/api/minimum-stock")
+      .then((res) => {
+        console.log("✅ Resposta recebida do backend");
+        return res.json();
+      })
+      .then((data) => {
+        setMinStock(data);
+      })
+      .catch((err) => {
+        console.error("❌ Erro ao buscar estoque:", err);
+      });
+  }, []);
+
   return (
     <div>
       <Dashboard
@@ -79,6 +97,7 @@ export default function Page() {
         orderedProducts={orderedProducts}
         bestSellingProducts={bestSellingProducts}
         unitsSold={unitsSold}
+        minStock={minStock}
       />
     </div>
   );

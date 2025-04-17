@@ -7,8 +7,7 @@ import {
 } from "@/components/ui/card";
 import { ProductInventoryTable } from "./product-inventory-table";
 
-export function AnalyticsContent({ orderedProducts }) {
-  
+export function AnalyticsContent({ orderedProducts, minStock }) {
   return (
     <div className="space-y-4">
       <Card className="col-span-7">
@@ -17,7 +16,10 @@ export function AnalyticsContent({ orderedProducts }) {
           <CardDescription>Current stock levels and status</CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductInventoryTable orderedProducts={orderedProducts} />
+          <ProductInventoryTable
+            orderedProducts={orderedProducts}
+            minStock={minStock}
+          />
         </CardContent>
       </Card>
 
