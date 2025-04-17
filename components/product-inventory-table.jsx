@@ -45,7 +45,7 @@ const colorMap = {
   Verde: "#008000",
   "Verde-escuro": "#006400",
   Cinza: "#808080",
-  // Add English color names for the sample data
+
   White: "#f0ece8",
   Black: "#000000",
   Red: "#FF0000",

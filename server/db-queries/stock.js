@@ -129,3 +129,20 @@ export async function getBestSellingProducts() {
   console.log(bestProducts);
   return bestProducts;
 }
+
+export async function getStockSuggestions() {
+  const results = await dbConnection("products as p")
+    .join("min_stock as m", "p.size", "m.size")
+    .select(
+      "p.product_id",
+      "p.size",
+      "p.stock",
+      "m.min as min_stock",
+      dbConnection.raw(`
+        CEIL(GREATEST(0, m.min - p.stock) / 5.0) * 5 as stock_suggestion
+      `)
+    );
+
+  return results;
+}
+ getStockSuggestions();
