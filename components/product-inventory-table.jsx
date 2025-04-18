@@ -10,7 +10,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 // Color mapping from names to hex codes
@@ -77,10 +84,65 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   // Estado para controlar edição individual de inputs
   const [editStates, setEditStates] = useState({});
 
-  const totalPages = Math.ceil(orderedProducts.length / productsPerPage);
+  // Filter states
+  const [filters, setFilters] = useState({
+    name: "",
+    color: "",
+    size: "",
+    stock: "",
+    status: "",
+  });
+
+  // Filtered products
+  const [filteredProducts, setFilteredProducts] = useState(orderedProducts);
+
+  // Apply filters
+  useEffect(() => {
+    let result = [...orderedProducts];
+
+    if (filters.name) {
+      result = result.filter((product) =>
+        product.name.toLowerCase().includes(filters.name.toLowerCase())
+      );
+    }
+
+    if (filters.color) {
+      result = result.filter((product) =>
+        product.color.toLowerCase().includes(filters.color.toLowerCase())
+      );
+    }
+
+    if (filters.size) {
+      result = result.filter(
+        (product) => product.size.toLowerCase() === filters.size.toLowerCase()
+      );
+    }
+
+    if (filters.stock) {
+      const stockNum = Number.parseInt(filters.stock);
+      if (!isNaN(stockNum)) {
+        result = result.filter((product) => product.stock <= stockNum);
+      }
+    }
+
+    if (filters.status) {
+      result = result.filter((product) => {
+        const status = getRestockStatus(product.size, product.stock);
+        return (
+          status &&
+          status.status.toLowerCase().includes(filters.status.toLowerCase())
+        );
+      });
+    }
+
+    setFilteredProducts(result);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [filters, orderedProducts]);
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = orderedProducts.slice(
+  const currentProducts = filteredProducts.slice(
     indexOfFirstProduct,
     indexOfLastProduct
   );
@@ -120,8 +182,121 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
     }));
   };
 
+  const handleFilterChange = (field, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      name: "",
+      color: "",
+      size: "",
+      stock: "",
+      status: "",
+    });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = Object.values(filters).some(
+    (filter) => filter !== ""
+  );
+
   return (
     <div className="space-y-4">
+      {/* Filter controls */}
+      <div className="bg-muted/40 p-4 rounded-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+          <h3 className="text-lg font-medium mb-2 sm:mb-0">Filters</h3>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="flex items-center"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Clear all filters
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Product Name</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter by name"
+                value={filters.name}
+                onChange={(e) => handleFilterChange("name", e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Color</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter by color"
+                value={filters.color}
+                onChange={(e) => handleFilterChange("color", e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Size</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="P, M, G, GG"
+                value={filters.size}
+                onChange={(e) => handleFilterChange("size", e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Stock (less than)</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="e.g. 10"
+                value={filters.stock}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "stock",
+                    e.target.value.replace(/[^0-9]/g, "")
+                  )
+                }
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Status</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Urgente, Atenção, Estável"
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+        </div>
+        {hasActiveFilters && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            Showing {filteredProducts.length} of {orderedProducts.length}{" "}
+            products
+          </div>
+        )}
+      </div>
+
       <div className="rounded-md border" ref={tableRef}>
         <Table>
           <TableHeader>
@@ -136,64 +311,79 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentProducts.map((product) => {
-              const restockInfo = getRestockStatus(product.size, product.stock);
-              const colorHex = getColorHex(product.color);
-              const isEditing = editStates[product.id] || false;
+            {currentProducts.length > 0 ? (
+              currentProducts.map((product) => {
+                const restockInfo = getRestockStatus(
+                  product.size,
+                  product.stock
+                );
+                const colorHex = getColorHex(product.color);
+                const isEditing = editStates[product.id] || false;
 
-              return (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.color}</TableCell>
-                  <TableCell>
-                    <div
-                      className="h-6 w-6 rounded-full border border-gray-200"
-                      style={{ backgroundColor: colorHex }}
-                      title={`${product.color} (${colorHex})`}
-                    />
-                  </TableCell>
-                  <TableCell>{product.size}</TableCell>
-                  <TableCell className="text-right">
-                    {product.stock <= 5 ? (
-                      <span className="flex items-center justify-end gap-1 text-red-500">
-                        <AlertCircle className="h-4 w-4" />
-                        {product.stock}
-                      </span>
-                    ) : (
-                      product.stock
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={restockInfo.variant}>
-                      {restockInfo.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        disabled={!isEditing}
-                        type="text"
-                        value={stockInputs[product.id] ?? ""}
-                        onChange={(e) =>
-                          handleStockInputChange(product.id, e.target.value)
-                        }
-                        className="w-16 h-8"
-                        placeholder={product.stock_suggestion.toString()}
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">
+                      {product.name}
+                    </TableCell>
+                    <TableCell>{product.color}</TableCell>
+                    <TableCell>
+                      <div
+                        className="h-6 w-6 rounded-full border border-gray-200"
+                        style={{ backgroundColor: colorHex }}
+                        title={`${product.color} (${colorHex})`}
                       />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 px-2 py-0"
-                        onClick={() => toggleEditState(product.id)}
-                      >
-                        <Plus className="h-3.5 w-3.5 mr-1" />
-                        {isEditing ? "Salvar" : "Editar"}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    </TableCell>
+                    <TableCell>{product.size}</TableCell>
+                    <TableCell className="text-right">
+                      {product.stock <= 5 ? (
+                        <span className="flex items-center justify-end gap-1 text-red-500">
+                          <AlertCircle className="h-4 w-4" />
+                          {product.stock}
+                        </span>
+                      ) : (
+                        product.stock
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={restockInfo.variant}>
+                        {restockInfo.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          disabled={!isEditing}
+                          type="text"
+                          value={stockInputs[product.id] ?? ""}
+                          onChange={(e) =>
+                            handleStockInputChange(product.id, e.target.value)
+                          }
+                          className="w-16 h-8"
+                          placeholder={
+                            product.stock_suggestion?.toString() || "0"
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 py-0"
+                          onClick={() => toggleEditState(product.id)}
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-1" />
+                          {isEditing ? "Salvar" : "Editar"}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  No products match your filters
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
@@ -203,8 +393,8 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Showing {indexOfFirstProduct + 1}-
-            {Math.min(indexOfLastProduct, orderedProducts.length)} of{" "}
-            {orderedProducts.length} products
+            {Math.min(indexOfLastProduct, filteredProducts.length)} of{" "}
+            {filteredProducts.length} products
           </div>
           <div className="flex items-center space-x-2">
             <Button
