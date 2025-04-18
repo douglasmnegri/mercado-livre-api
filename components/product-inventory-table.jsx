@@ -88,12 +88,9 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   const [productsPerPage] = useState(30);
   const tableRef = useRef(null);
 
-  // Estado para inputs personalizados
   const [stockInputs, setStockInputs] = useState({});
-  // Estado para controlar edição individual de inputs
   const [editStates, setEditStates] = useState({});
 
-  // Filter states - modified to use arrays for multi-select options
   const [filters, setFilters] = useState({
     name: [],
     color: "",
@@ -102,22 +99,18 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
     status: [],
   });
 
-  // Get unique options for filters
   const productOptions = [
     ...new Set(orderedProducts.map((product) => product.name)),
   ];
   const sizeOptions = ["P", "M", "G", "GG"];
   const statusOptions = ["Urgente", "Atenção", "Estável"];
 
-  // Filtered products
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  // Initialize filtered products
   useEffect(() => {
     setFilteredProducts(orderedProducts);
   }, [orderedProducts]);
 
-  // Apply filters
   useEffect(() => {
     let result = [...orderedProducts];
 
@@ -236,7 +229,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
     });
   };
 
-  // Check if any filters are active
   const hasActiveFilters =
     filters.name.length > 0 ||
     filters.color !== "" ||
@@ -244,7 +236,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
     filters.stock !== "" ||
     filters.status.length > 0;
 
-  // Count products with added units (either manual or suggestion)
   const productsWithAddedUnits = filteredProducts.filter((product) => {
     const manualInput = stockInputs[product.id]
       ? Number.parseInt(stockInputs[product.id], 10)
@@ -326,7 +317,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             </div>
           </div>
 
-          {/* Size Filter - Dropdown */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Tamanho</label>
             <DropdownMenu>
@@ -356,7 +346,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             </DropdownMenu>
           </div>
 
-          {/* Stock Filter - Text Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Estoque (menos de)</label>
             <div className="relative">
@@ -375,7 +364,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             </div>
           </div>
 
-          {/* Status Filter - Dropdown */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
             <DropdownMenu>
@@ -404,7 +392,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
           </div>
         </div>
 
-        {/* Active Filters Display */}
         <div className="mt-4 flex flex-wrap gap-2">
           {filters.name.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -499,7 +486,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
               <TableHead>Cor</TableHead>
               <TableHead>Visual</TableHead>
               <TableHead>Tamanho</TableHead>
-              <TableHead className="text-right">Estoque</TableHead>
+              <TableHead>Estoque</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Adicionar Unidades</TableHead>
             </TableRow>
@@ -528,16 +515,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
                       />
                     </TableCell>
                     <TableCell>{product.size}</TableCell>
-                    <TableCell className="text-right">
-                      {product.stock <= 5 ? (
-                        <span className="flex items-center justify-end gap-1 text-red-500">
-                          <AlertCircle className="h-4 w-4" />
-                          {product.stock}
-                        </span>
-                      ) : (
-                        product.stock
-                      )}
-                    </TableCell>
+                    <TableCell>{product.stock}</TableCell>
                     <TableCell>
                       <Badge variant={restockInfo.variant}>
                         {restockInfo.status}
@@ -582,7 +560,6 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
         </Table>
       </div>
 
-      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
