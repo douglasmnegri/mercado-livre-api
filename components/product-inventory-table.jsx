@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { ProductInventoryPDF } from "./product-inventory-pdf";
 
 // Color mapping from names to hex codes
 const colorMap = {
@@ -94,7 +95,12 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   });
 
   // Filtered products
-  const [filteredProducts, setFilteredProducts] = useState(orderedProducts);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // Initialize filtered products
+  useEffect(() => {
+    setFilteredProducts(orderedProducts);
+  }, [orderedProducts]);
 
   // Apply filters
   useEffect(() => {
@@ -176,9 +182,13 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   };
 
   const toggleEditState = (productId) => {
+    const isCurrentlyEditing = editStates[productId] || false;
+
+    // If currently editing and about to save, we don't actually update the stock
+    // We just toggle the edit state and keep the input value for the PDF export
     setEditStates((prev) => ({
       ...prev,
-      [productId]: !prev[productId], // Alterna apenas o estado desse produto
+      [productId]: !isCurrentlyEditing,
     }));
   };
 
@@ -204,23 +214,39 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
     (filter) => filter !== ""
   );
 
+  // Count products with added units (either manual or suggestion)
+  const productsWithAddedUnits = filteredProducts.filter((product) => {
+    const manualInput = stockInputs[product.id]
+      ? Number.parseInt(stockInputs[product.id], 10)
+      : 0;
+    const suggestion = product.stock_suggestion || 0;
+    return manualInput > 0 || suggestion > 0;
+  }).length;
+
   return (
     <div className="space-y-4">
       {/* Filter controls */}
       <div className="bg-muted/40 p-4 rounded-md">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <h3 className="text-lg font-medium mb-2 sm:mb-0">Filters</h3>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="flex items-center"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Clear all filters
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="flex items-center"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear all filters
+              </Button>
+            )}
+            <ProductInventoryPDF
+              products={filteredProducts}
+              stockInputs={stockInputs}
+              filters={filters}
+            />
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <div className="space-y-2">
@@ -289,12 +315,20 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             </div>
           </div>
         </div>
-        {hasActiveFilters && (
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredProducts.length} of {orderedProducts.length}{" "}
-            products
-          </div>
-        )}
+        <div className="mt-4 flex flex-wrap gap-2 text-sm">
+          {hasActiveFilters && (
+            <div className="text-muted-foreground">
+              Showing {filteredProducts.length} of {orderedProducts.length}{" "}
+              products
+            </div>
+          )}
+          {productsWithAddedUnits > 0 && (
+            <div className="text-primary font-medium">
+              {productsWithAddedUnits} product
+              {productsWithAddedUnits !== 1 ? "s" : ""} with units to add
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="rounded-md border" ref={tableRef}>
