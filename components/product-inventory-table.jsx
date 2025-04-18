@@ -20,6 +20,14 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ProductInventoryPDF } from "./product-inventory-pdf";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Color mapping from names to hex codes
 const colorMap = {
@@ -85,14 +93,21 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   // Estado para controlar edição individual de inputs
   const [editStates, setEditStates] = useState({});
 
-  // Filter states
+  // Filter states - modified to use arrays for multi-select options
   const [filters, setFilters] = useState({
-    name: "",
+    name: [],
     color: "",
-    size: "",
+    size: [],
     stock: "",
-    status: "",
+    status: [],
   });
+
+  // Get unique options for filters
+  const productOptions = [
+    ...new Set(orderedProducts.map((product) => product.name)),
+  ];
+  const sizeOptions = ["P", "M", "G", "GG"];
+  const statusOptions = ["Urgente", "Atenção", "Estável"];
 
   // Filtered products
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -106,10 +121,8 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
   useEffect(() => {
     let result = [...orderedProducts];
 
-    if (filters.name) {
-      result = result.filter((product) =>
-        product.name.toLowerCase().includes(filters.name.toLowerCase())
-      );
+    if (filters.name.length > 0) {
+      result = result.filter((product) => filters.name.includes(product.name));
     }
 
     if (filters.color) {
@@ -118,10 +131,8 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
       );
     }
 
-    if (filters.size) {
-      result = result.filter(
-        (product) => product.size.toLowerCase() === filters.size.toLowerCase()
-      );
+    if (filters.size.length > 0) {
+      result = result.filter((product) => filters.size.includes(product.size));
     }
 
     if (filters.stock) {
@@ -131,18 +142,15 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
       }
     }
 
-    if (filters.status) {
+    if (filters.status.length > 0) {
       result = result.filter((product) => {
         const status = getRestockStatus(product.size, product.stock);
-        return (
-          status &&
-          status.status.toLowerCase().includes(filters.status.toLowerCase())
-        );
+        return status && filters.status.includes(status.status);
       });
     }
 
     setFilteredProducts(result);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [filters, orderedProducts]);
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
@@ -183,36 +191,58 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
 
   const toggleEditState = (productId) => {
     const isCurrentlyEditing = editStates[productId] || false;
-
-    // If currently editing and about to save, we don't actually update the stock
-    // We just toggle the edit state and keep the input value for the PDF export
     setEditStates((prev) => ({
       ...prev,
       [productId]: !isCurrentlyEditing,
     }));
   };
 
-  const handleFilterChange = (field, value) => {
+  const handleTextFilterChange = (field, value) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
+  const toggleOptionFilter = (field, option) => {
+    setFilters((prev) => {
+      const currentOptions = [...prev[field]];
+      const optionIndex = currentOptions.indexOf(option);
+
+      if (optionIndex === -1) {
+        // Add option
+        return {
+          ...prev,
+          [field]: [...currentOptions, option],
+        };
+      } else {
+        // Remove option
+        currentOptions.splice(optionIndex, 1);
+        return {
+          ...prev,
+          [field]: currentOptions,
+        };
+      }
+    });
+  };
+
   const clearFilters = () => {
     setFilters({
-      name: "",
+      name: [],
       color: "",
-      size: "",
+      size: [],
       stock: "",
-      status: "",
+      status: [],
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = Object.values(filters).some(
-    (filter) => filter !== ""
-  );
+  const hasActiveFilters =
+    filters.name.length > 0 ||
+    filters.color !== "" ||
+    filters.size.length > 0 ||
+    filters.stock !== "" ||
+    filters.status.length > 0;
 
   // Count products with added units (either manual or suggestion)
   const productsWithAddedUnits = filteredProducts.filter((product) => {
@@ -228,7 +258,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
       {/* Filter controls */}
       <div className="bg-muted/40 p-4 rounded-md">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-          <h3 className="text-lg font-medium mb-2 sm:mb-0">Filters</h3>
+          <h3 className="text-lg font-medium mb-2 sm:mb-0">Filtros</h3>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (
               <Button
@@ -238,7 +268,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
                 className="flex items-center"
               >
                 <X className="h-4 w-4 mr-1" />
-                Clear all filters
+                Limpar todos os filtros
               </Button>
             )}
             <ProductInventoryPDF
@@ -249,51 +279,93 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* Product Name Filter - Dropdown */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Product Name</label>
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter by name"
-                value={filters.name}
-                onChange={(e) => handleFilterChange("name", e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <label className="text-sm font-medium">Nome do Produto</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.name.length === 0
+                    ? "Selecione os produtos"
+                    : `${filters.name.length} selecionado${
+                        filters.name.length > 1 ? "s" : ""
+                      }`}
+
+                  <ChevronLeft className="h-4 w-4 ml-2 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Produtos</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {productOptions.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option}
+                    checked={filters.name.includes(option)}
+                    onCheckedChange={() => toggleOptionFilter("name", option)}
+                  >
+                    {option}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          {/* Color Filter - Text Input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Color</label>
+            <label className="text-sm font-medium">Cor</label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Filter by color"
+                placeholder="Filtre por cor"
                 value={filters.color}
-                onChange={(e) => handleFilterChange("color", e.target.value)}
+                onChange={(e) =>
+                  handleTextFilterChange("color", e.target.value)
+                }
                 className="pl-8"
               />
             </div>
           </div>
+
+          {/* Size Filter - Dropdown */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Size</label>
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="P, M, G, GG"
-                value={filters.size}
-                onChange={(e) => handleFilterChange("size", e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <label className="text-sm font-medium">Tamanho</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.size.length === 0
+                    ? "Selecione os produtos"
+                    : `${filters.size.length} selecionado${
+                        filters.size.length > 1 ? "s" : ""
+                      }`}
+                  <ChevronLeft className="h-4 w-4 ml-2 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Tamanhos</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {sizeOptions.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option}
+                    checked={filters.size.includes(option)}
+                    onCheckedChange={() => toggleOptionFilter("size", option)}
+                  >
+                    {option}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          {/* Stock Filter - Text Input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Stock (less than)</label>
+            <label className="text-sm font-medium">Estoque (menos de)</label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="e.g. 10"
                 value={filters.stock}
                 onChange={(e) =>
-                  handleFilterChange(
+                  handleTextFilterChange(
                     "stock",
                     e.target.value.replace(/[^0-9]/g, "")
                   )
@@ -302,30 +374,118 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
               />
             </div>
           </div>
+
+          {/* Status Filter - Dropdown */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Urgente, Atenção, Estável"
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.status.length === 0
+                    ? "Select status"
+                    : `${filters.status.length} selected`}
+                  <ChevronLeft className="h-4 w-4 ml-2 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {statusOptions.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option}
+                    checked={filters.status.includes(option)}
+                    onCheckedChange={() => toggleOptionFilter("status", option)}
+                  >
+                    {option}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {/* Active Filters Display */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {filters.name.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {filters.name.map((name) => (
+                <Badge
+                  key={name}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {name}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleOptionFilter("name", name)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {filters.size.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {filters.size.map((size) => (
+                <Badge
+                  key={size}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  Tamanho: {size}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleOptionFilter("size", size)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {filters.status.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {filters.status.map((status) => (
+                <Badge
+                  key={status}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  Status: {status}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleOptionFilter("status", status)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {filters.color && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Cor: {filters.color}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleTextFilterChange("color", "")}
+              />
+            </Badge>
+          )}
+
+          {filters.stock && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Stock &lt; {filters.stock}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleTextFilterChange("stock", "")}
+              />
+            </Badge>
+          )}
+        </div>
+
         <div className="mt-4 flex flex-wrap gap-2 text-sm">
           {hasActiveFilters && (
             <div className="text-muted-foreground">
-              Showing {filteredProducts.length} of {orderedProducts.length}{" "}
-              products
-            </div>
-          )}
-          {productsWithAddedUnits > 0 && (
-            <div className="text-primary font-medium">
-              {productsWithAddedUnits} product
-              {productsWithAddedUnits !== 1 ? "s" : ""} with units to add
+              Mostrando {filteredProducts.length} de {orderedProducts.length}{" "}
+              produtos
             </div>
           )}
         </div>
@@ -335,13 +495,13 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product Name</TableHead>
-              <TableHead>Color</TableHead>
-              <TableHead>Color Preview</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Cor</TableHead>
+              <TableHead>Visual</TableHead>
+              <TableHead>Tamanho</TableHead>
+              <TableHead className="text-right">Estoque</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Add Units</TableHead>
+              <TableHead>Adicionar Unidades</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -414,7 +574,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                  No products match your filters
+                  Nenhum produto corresponde aos seus filtros
                 </TableCell>
               </TableRow>
             )}
@@ -426,9 +586,9 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {indexOfFirstProduct + 1}-
-            {Math.min(indexOfLastProduct, filteredProducts.length)} of{" "}
-            {filteredProducts.length} products
+            Mostrando {indexOfFirstProduct + 1}-
+            {Math.min(indexOfLastProduct, filteredProducts.length)} de{" "}
+            {filteredProducts.length} produtos
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -438,10 +598,10 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
+              Anterior
             </Button>
             <div className="text-sm font-medium">
-              Page {currentPage} of {totalPages}
+              Página {currentPage} de {totalPages}
             </div>
             <Button
               variant="outline"
@@ -449,7 +609,7 @@ export function ProductInventoryTable({ orderedProducts, minStock }) {
               onClick={goToNextPage}
               disabled={currentPage === totalPages}
             >
-              Next
+              Próxima
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>

@@ -26,7 +26,7 @@ export default function Dashboard({
   orderedProducts,
   bestSellingProducts,
   unitsSold,
-  minStock
+  minStock,
 }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
@@ -179,7 +179,11 @@ export default function Dashboard({
             </div>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
-            <AnalyticsContent orderedProducts={orderedProducts} minStock={minStock}/>
+            <AnalyticsContent
+              orderedProducts={orderedProducts}
+              minStock={minStock}
+              stock={fullStock}
+            />
           </TabsContent>
           <TabsContent value="reports" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-1">

@@ -18,7 +18,6 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
         setStock(data.stock[0].sum);
         setActiveProducts(data.activeProducts[0].count);
       })
@@ -50,7 +49,6 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
         setBestSellingProducts(data);
       })
       .catch((err) => {

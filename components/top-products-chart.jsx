@@ -65,7 +65,7 @@ export function TopProductsChart({ bestSellingProducts }) {
         <Tooltip content={<CustomTooltip />} />
         <Bar
           dataKey="units"
-          fill="#043763"
+          fill="#000000"
           radius={[0, 4, 4, 0]}
           name="Units Sold"
           barSize={20}

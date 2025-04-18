@@ -17,17 +17,18 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
       // Create a new PDF document
       const doc = new jsPDF();
 
-      // Add title
-      const title = "Product Restock Order";
+      const title = "Reposição de Produtos - Mercado Livre";
       doc.setFontSize(18);
       doc.text(title, 14, 22);
 
-      // Add date
-      const date = new Date().toLocaleDateString();
-      doc.setFontSize(11);
-      doc.text(`Generated on: ${date}`, 14, 30);
+      const now = new Date();
+      const date = `${String(now.getDate()).padStart(2, "0")}/${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}/${String(now.getFullYear()).slice(-2)}`;
 
-      // Add filter information if filters are active
+      doc.setFontSize(11);
+      doc.text(`Gerado em: ${date}`, 14, 30);
+
       let yPos = 38;
       const hasActiveFilters = Object.values(filters).some(
         (filter) => filter !== ""
@@ -40,25 +41,25 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
 
         if (filters.name) {
           doc.setFontSize(10);
-          doc.text(`• Product Name: ${filters.name}`, 18, yPos);
+          doc.text(`• Produto: ${filters.name}`, 18, yPos);
           yPos += 5;
         }
 
         if (filters.color) {
           doc.setFontSize(10);
-          doc.text(`• Color: ${filters.color}`, 18, yPos);
+          doc.text(`• Cor: ${filters.color}`, 18, yPos);
           yPos += 5;
         }
 
         if (filters.size) {
           doc.setFontSize(10);
-          doc.text(`• Size: ${filters.size}`, 18, yPos);
+          doc.text(`• Tamanho: ${filters.size}`, 18, yPos);
           yPos += 5;
         }
 
         if (filters.stock) {
           doc.setFontSize(10);
-          doc.text(`• Stock (less than): ${filters.stock}`, 18, yPos);
+          doc.text(`• Estoque: ${filters.stock}`, 18, yPos);
           yPos += 5;
         }
 
@@ -66,16 +67,8 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
       }
 
       // Prepare table data - use stock_suggestion as fallback when no manual input
-      const tableColumn = [
-        "Product Name",
-        "Color",
-        "Size",
-        "Current Stock",
-        "Units to Add",
-        "Source",
-      ];
+      const tableColumn = ["Nome", "Cor", "Tamanho", "Estoque", "Reposição"];
       const tableRows = products.map((product) => {
-        // Get units to add - use manual input if available, otherwise use stock_suggestion
         const manualInput = stockInputs[product.id]
           ? Number.parseInt(stockInputs[product.id], 10)
           : 0;
@@ -90,7 +83,6 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
           product.size,
           product.stock.toString(),
           unitsToAdd.toString(),
-          source,
         ];
       });
 
@@ -104,11 +96,10 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
         doc.text("No units to add for any products.", 14, yPos);
         yPos += 10;
 
-        // Generate the table with all products
         autoTable(doc, {
           startY: yPos,
-          head: [tableColumn.slice(0, 5)], // Remove the Source column
-          body: tableRows.map((row) => row.slice(0, 5)), // Remove the Source column
+          head: [tableColumn.slice(0, 5)],
+          body: tableRows.map((row) => row.slice(0, 5)),
           headStyles: {
             fillColor: [75, 75, 75],
             textColor: [255, 255, 255],
@@ -120,7 +111,6 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
           margin: { top: 10 },
         });
       } else {
-        // Generate the table with products that have units to add
         autoTable(doc, {
           startY: yPos,
           head: [tableColumn],
@@ -136,32 +126,24 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
           margin: { top: 10 },
         });
 
-        // Add summary information
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(11);
 
-        // Calculate total units being added
         const totalUnitsToAdd = rowsWithUnits.reduce(
           (sum, row) => sum + Number.parseInt(row[4], 10),
           0
         );
 
-        // Count manual vs suggestion sources
-        const manualCount = rowsWithUnits.filter(
-          (row) => row[5] === "Manual"
-        ).length;
-        const suggestionCount = rowsWithUnits.filter(
-          (row) => row[5] === "Suggestion"
-        ).length;
-
         doc.text(
-          `Total Products to Restock: ${rowsWithUnits.length}`,
+          `Modelos para Reposição: ${rowsWithUnits.length}`,
           14,
           finalY
         );
-        doc.text(`Total Units to Add: ${totalUnitsToAdd}`, 14, finalY + 7);
-        doc.text(`Manual Entries: ${manualCount}`, 14, finalY + 14);
-        doc.text(`Suggestion-based: ${suggestionCount}`, 14, finalY + 21);
+        doc.text(
+          `Total de Unidades: ${totalUnitsToAdd}`,
+          14,
+          finalY + 7
+        );
       }
 
       // Save the PDF
@@ -181,7 +163,7 @@ export function ProductInventoryPDF({ products, stockInputs, filters = {} }) {
       className="flex items-center gap-2"
     >
       <FileDown className="h-4 w-4" />
-      {isGenerating ? "Generating PDF..." : "Export Restock Order"}
+      {isGenerating ? "Generating PDF..." : "Exportar Reposição"}
     </Button>
   );
 }
