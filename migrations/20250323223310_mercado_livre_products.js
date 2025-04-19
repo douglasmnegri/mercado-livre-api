@@ -18,8 +18,19 @@ exports.up = function (knex) {
     })
     .then(() => {
       return knex.schema.createTable("min_stock", function (table) {
-        table.string("size").primary(); 
+        table.string("size").primary();
         table.integer("min").notNullable();
+      });
+    })
+    .then(() => {
+      return knex.schema.createTable("tokens", function (table) {
+        table.string("id").primary();
+        table.string("key").notNullable();
+        table.string("uri");
+        table.string("access_token").notNullable();
+        table.string("refresh_token");
+        table.string("seller_id");
+        table.timestamp("expires_at");
       });
     });
 };
