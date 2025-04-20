@@ -30,6 +30,7 @@ exports.up = function (knex) {
         table.string("access_token").notNullable();
         table.string("refresh_token");
         table.string("seller_id");
+        table.string("url");
         table.timestamp("expires_at");
       });
     });
@@ -41,6 +42,7 @@ exports.up = function (knex) {
  */
 exports.down = function (knex) {
   return knex.schema
-    .dropTableIfExists("min_stock")
+    .dropTableIfExists("tokens")
+    .then(() => knex.schema.dropTableIfExists("min_stock"))
     .then(() => knex.schema.dropTableIfExists("products"));
 };
