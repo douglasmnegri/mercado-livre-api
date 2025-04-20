@@ -7,6 +7,7 @@ const fs = require("fs").promises;
 const knex = require("knex");
 const config = require("../../knexfile");
 const databaseTokens = require("../db-queries/refresh-token");
+const listOfProducts = require("../db-queries/products-list");
 const env =
   process.env.NODE_ENV !== "production" ? "development" : "production";
 const dbConnection = knex(config[env]);
@@ -17,8 +18,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-
-
 
 async function fetchAndStoreItem(itemId) {
   try {
@@ -111,11 +110,8 @@ async function fetchAndStoreItem(itemId) {
 
 app.get("/fetch-all-items", async (req, res) => {
   try {
-    const data = await fs.readFile(
-      path.join(__dirname, "../../id.json"),
-      "utf-8"
-    );
-    const itemIds = JSON.parse(data);
+    let data = await listOfProducts.getListOfProducts();
+    const itemIds = data.map((product) => product.product_id);
 
     await Promise.all(itemIds.map(fetchAndStoreItem));
 
