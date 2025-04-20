@@ -27,20 +27,31 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Implement authentication logic
-    // try {
-    //   const response = await signIn(email, password)
-    //   if (response.success) router.push('/dashboard')
-    // } catch (error) {
-    //   console.error('Login failed', error)
-    // }
+    try {
+      const response = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Simulating API call
-    setTimeout(() => {
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🔐 Dados recebidos:", data); // <-- ADICIONE ISSO
+
+        localStorage.setItem("authToken", data.token);
+        router.refresh();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Erro ao fazer login!");
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      alert("Erro na requisição. Tente novamente mais tarde.");
+    } finally {
       setIsLoading(false);
-      // Redirect to dashboard after successful login
-      // router.push('/dashboard')
-    }, 1500);
+    }
   };
 
   return (
