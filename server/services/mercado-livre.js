@@ -140,13 +140,13 @@ app.get("/orders", async (req, res) => {
 
 app.get("/sales", async (req, res) => {
   try {
-    const agora = new Date();
-    const umaHoraAtras = new Date(agora.getTime() - 60 * 60 * 1000);
+    const currentTime = new Date();
+    const oneHourAgo = new Date(currentTime.getTime() - 60 * 60 * 1000);
 
-    const fromDate = umaHoraAtras
+    const fromDate = oneHourAgo
       .toISOString()
       .replace(/\.\d{3}Z/, ".000-00:00");
-    const toDate = agora.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
+    const toDate = currentTime.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
 
     const url = `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=${fromDate}&order.date_created.to=${toDate}`;
 
@@ -159,7 +159,6 @@ app.get("/sales", async (req, res) => {
     }
 
     const dadosVendas = await response.json();
-
     const salesData = dadosVendas.results.map((order) => {
       const orderItem = order.order_items[0]; // First item in order
       const sizeAttribute = orderItem.item.variation_attributes?.find(
