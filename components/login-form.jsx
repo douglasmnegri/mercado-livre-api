@@ -38,7 +38,7 @@ export function LoginForm() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("🔐 Dados recebidos:", data); // <-- ADICIONE ISSO
+        console.log("🔐 Dados recebidos:", data);
 
         localStorage.setItem("authToken", data.token);
         router.refresh();
@@ -58,10 +58,10 @@ export function LoginForm() {
     <Card className="w-full">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Dashboard - Mercado Livre Full
+          Dashboard Click Camisetas
         </CardTitle>
         <CardDescription className="text-center">
-          Enter your credentials to access the dashboard
+          Insira suas credenciais para acessar o painel{" "}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -71,14 +71,14 @@ export function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="name@company.com"
+              placeholder="nome@empresa.com.br"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -112,7 +112,7 @@ export function LoginForm() {
             ) : (
               <div className="flex items-center justify-center">
                 <LockKeyhole className="mr-2 h-4 w-4" />
-                Sign in
+                Entrar
               </div>
             )}
           </Button>

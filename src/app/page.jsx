@@ -22,7 +22,6 @@ export default function Page() {
       setIsAuthenticated(!!token);
     };
 
-    // Initial check
     checkAuth();
 
     const handleStorageChange = () => checkAuth();
@@ -92,12 +91,15 @@ export default function Page() {
           minStock={minStock}
         />
       ) : (
-        <LoginForm
-          onLoginSuccess={() => {
-            setIsAuthenticated(true);
-            // Optional: router.refresh() if needed
-          }}
-        />
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+          <div className="w-full max-w-md">
+            <LoginForm
+              onLoginSuccess={() => {
+                setIsAuthenticated(true);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

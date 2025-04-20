@@ -61,11 +61,24 @@ export default function Dashboard({
         console.error("❌ Erro ao buscar estoque:", err);
       });
   }, [routeName]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    window.location.href = "/";
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          {/* Botão de Logout */}
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Logout
+          </button>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
