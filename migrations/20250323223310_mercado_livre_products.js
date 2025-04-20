@@ -33,6 +33,13 @@ exports.up = function (knex) {
         table.string("url");
         table.timestamp("expires_at");
       });
+    })
+    .then(() => {
+      return knex.schema.createTable("list", function (table) {
+        table.string("product_id").primary();
+        table.boolean("processed").defaultTo(false);
+        table.timestamp("added_at").defaultTo(knex.fn.now());
+      });
     });
 };
 
@@ -42,7 +49,8 @@ exports.up = function (knex) {
  */
 exports.down = function (knex) {
   return knex.schema
-    .dropTableIfExists("tokens")
+    .dropTableIfExists("list")
+    .then(() => knex.schema.dropTableIfExists("tokens"))
     .then(() => knex.schema.dropTableIfExists("min_stock"))
     .then(() => knex.schema.dropTableIfExists("products"));
 };
