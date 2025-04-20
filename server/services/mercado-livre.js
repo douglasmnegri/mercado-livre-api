@@ -1,7 +1,22 @@
+// Dotenv
 require("dotenv").config({ path: "../../.env" });
-const express = require("express");
+
+// Path/FS
 const path = require("path");
 const fs = require("fs").promises;
+
+// Express
+const express = require("express");
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Node-cron
+const cron = require("node-cron");
+
+// Node-axios
+const axios = require("axios");
 
 // Knex
 const knex = require("knex");
@@ -11,13 +26,6 @@ const listOfProducts = require("../db-queries/products-list");
 const env =
   process.env.NODE_ENV !== "production" ? "development" : "production";
 const dbConnection = knex(config[env]);
-
-// Express
-const app = express();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
 
 async function fetchAndStoreItem(itemId) {
   try {
@@ -34,12 +42,6 @@ async function fetchAndStoreItem(itemId) {
     }
 
     const json = await response.json();
-    const mainMaterial = json.attributes.find(
-      (attr) => attr.id === "SHIRT_MATERIAL"
-    )?.value_name;
-    const productType = json.attributes.find(
-      (attr) => attr.id === "MODEL"
-    )?.value_name;
 
     function getShirtData(material, type) {
       let shirtType, shirtMaterial;
@@ -136,26 +138,6 @@ app.get("/orders", async (req, res) => {
   res.json(data);
 });
 
-app.get("/fetch-item", async (req, res) => {
-  try {
-    const response = await fetch(
-      `https://api.mercadolibre.com/items/MLB5026419706`,
-      {
-        headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch item ${itemId}: ${response.statusText}`);
-    }
-    const json = await response.json();
-    console.log(json.id);
-    res.send(json);
-  } catch (error) {
-    console.error(error);
-  }
-});
-
 app.get("/sales", async (req, res) => {
   try {
     const agora = new Date();
@@ -206,9 +188,18 @@ app.get("/sales", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 const server = app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+
+cron.schedule("0 * * * *", async () => {
+  try {
+    console.log("⏱️ Executando cron para /fetch-all-items...");
+    const res = await axios.get(`http://localhost:${PORT}/fetch-all-items`);
+    console.log("✅ Fetch finalizado:", res.data.message);
+  } catch (error) {
+    console.error("❌ Erro no cron job:", error.message);
+  }
 });
 
 // Graceful shutdown
