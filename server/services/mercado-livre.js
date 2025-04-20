@@ -2,13 +2,16 @@ require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
+
+// Knex
 const knex = require("knex");
 const config = require("../../knexfile");
-
+const databaseTokens = require("../db-queries/refresh-token");
 const env =
   process.env.NODE_ENV !== "production" ? "development" : "production";
 const dbConnection = knex(config[env]);
 
+// Express
 const app = express();
 
 app.use(express.json());
@@ -17,10 +20,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 async function fetchAndStoreItem(itemId) {
   try {
+    const access_token = await databaseTokens.getAccessToken();
     const response = await fetch(
       `https://api.mercadolibre.com/items/${itemId}`,
       {
-        headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+        headers: { Authorization: `Bearer ${access_token.access_token}` },
       }
     );
 
@@ -90,7 +94,10 @@ async function fetchAndStoreItem(itemId) {
         URL: permaLink,
       };
 
-      await dbConnection("products").insert(variationDetails);
+      await dbConnection("products")
+        .insert(variationDetails)
+        .onConflict("product_id")
+        .merge();
     });
 
     await Promise.all(variationPromises);
@@ -117,11 +124,6 @@ app.get("/fetch-all-items", async (req, res) => {
       .status(500)
       .json({ error: "Erro interno do servidor", details: error.message });
   }
-});
-
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
 app.get("/orders", async (req, res) => {
@@ -156,7 +158,6 @@ app.get("/fetch-item", async (req, res) => {
   }
 });
 
-
 app.get("/sales", async (req, res) => {
   try {
     const agora = new Date();
@@ -187,11 +188,11 @@ app.get("/sales", async (req, res) => {
 
       return {
         product_id: orderItem.item.id,
-        title: orderItem.item.title, 
+        title: orderItem.item.title,
         size: sizeAttribute?.value_name || "N/A",
         unit_price: orderItem.unit_price,
         quantity_sold: orderItem.quantity,
-        sale_date: order.date_closed, 
+        sale_date: order.date_closed,
       };
     });
 
@@ -204,6 +205,12 @@ app.get("/sales", async (req, res) => {
       detalhes: error.message,
     });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+
+const server = app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
 // Graceful shutdown

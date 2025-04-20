@@ -76,7 +76,6 @@ app.post("/refresh-access-token", async (req, res) => {
       json.refresh_token,
       json.access_token
     );
-    
     res.json(json);
   } catch (error) {
     console.error("Error:", error);

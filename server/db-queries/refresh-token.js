@@ -24,4 +24,9 @@ export async function getRefreshToken() {
   return token;
 }
 
+export async function getAccessToken() {
+  const token = await dbConnection("tokens").first("access_token");
 
+  console.log(token);
+  return token;
+}
