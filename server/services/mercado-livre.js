@@ -140,18 +140,19 @@ app.get("/orders", async (req, res) => {
 
 app.get("/sales", async (req, res) => {
   try {
-    const currentTime = new Date();
-    const oneHourAgo = new Date(currentTime.getTime() - 60 * 60 * 1000);
+    const access_token = await databaseTokens.getAccessToken();
+    // const currentTime = new Date();
+    // const oneHourAgo = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
+    const currentTime = new Date(Date.now() - 3 * 60 * 60 * 1000); // 3 horas atrás
+    const oneHourAgo = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000); // 2 horas antes de currentTime
 
-    const fromDate = oneHourAgo
-      .toISOString()
-      .replace(/\.\d{3}Z/, ".000-00:00");
+    const fromDate = oneHourAgo.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
     const toDate = currentTime.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
 
     const url = `https://api.mercadolibre.com/orders/search?seller=${process.env.SELLER_ID}&order.date_created.from=${fromDate}&order.date_created.to=${toDate}`;
 
     const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+      headers: { Authorization: `Bearer ${access_token.access_token}` },
     });
 
     if (!response.ok) {
@@ -159,13 +160,16 @@ app.get("/sales", async (req, res) => {
     }
 
     const dadosVendas = await response.json();
+
     const salesData = dadosVendas.results.map((order) => {
-      const orderItem = order.order_items[0]; // First item in order
+      console.log(order.pack_id);
+      const orderItem = order.order_items[0];
       const sizeAttribute = orderItem.item.variation_attributes?.find(
         (attr) => attr.id === "SIZE"
       );
 
       return {
+        order_id: order.pack_id,
         product_id: orderItem.item.id,
         title: orderItem.item.title,
         size: sizeAttribute?.value_name || "N/A",
@@ -175,7 +179,6 @@ app.get("/sales", async (req, res) => {
       };
     });
 
-    console.log("Vendas processadas:", salesData);
     res.json(salesData);
   } catch (error) {
     console.error("Erro na rota /vendas-ultima-hora:", error);
