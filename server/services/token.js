@@ -55,11 +55,10 @@ async function refreshAccessToken() {
   }
 }
 
-cron.schedule("* * * * *", () => {
+cron.schedule("0 */5 * * *", () => {
   console.log("Executando cron job para atualizar o access token...");
   refreshAccessToken();
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

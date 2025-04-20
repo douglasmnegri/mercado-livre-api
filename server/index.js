@@ -12,6 +12,7 @@ import {
   minimumStock,
 } from "./api/full-stock.js";
 
+import { router } from "./routes/login.js";
 dotenv.config();
 
 const app = express();
@@ -20,6 +21,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+app.use("/api", router);
 app.get("/api/full-stock", fullStock);
 app.get("/api/polyester", polyesterStock);
 app.get("/api/cotton", cottonStock);
