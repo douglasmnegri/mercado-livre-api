@@ -30,3 +30,11 @@ export async function getAccessToken() {
   console.log(token);
   return token;
 }
+
+
+export async function getMercadoLivreURL() {
+  const url = await dbConnection("tokens").first("url");
+
+  console.log(url);
+  return url;
+}
