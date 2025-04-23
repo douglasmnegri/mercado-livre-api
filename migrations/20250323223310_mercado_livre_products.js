@@ -15,6 +15,7 @@ exports.up = function (knex) {
       table.string("color");
       table.string("size");
       table.string("URL");
+      table.string("picture");
     })
     .then(() => {
       return knex.schema.createTable("min_stock", function (table) {

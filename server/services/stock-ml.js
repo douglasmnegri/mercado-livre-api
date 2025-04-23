@@ -42,6 +42,7 @@ async function fetchAndStoreItem(itemId) {
     }
 
     const json = await response.json();
+    console.log(json.pictures[0].url);
 
     function getShirtData(material, type) {
       let shirtType, shirtMaterial;
@@ -75,7 +76,7 @@ async function fetchAndStoreItem(itemId) {
       const userProductID = variation.user_product_id;
       const generalID = json.id;
       const permaLink = json.permalink;
-      const title = json.title;
+      const picture = json.pictures[0].url;
 
       variation.attribute_combinations.forEach((attr) => {
         if (attr.name === "Cor") {
@@ -95,6 +96,7 @@ async function fetchAndStoreItem(itemId) {
         color,
         size,
         URL: permaLink,
+        picture: picture,
       };
 
       await dbConnection("products")

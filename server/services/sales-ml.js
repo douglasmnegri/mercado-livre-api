@@ -49,6 +49,7 @@ app.get("/sales", async (req, res) => {
 
     const dadosVendas = await response.json();
 
+
     const salesData = dadosVendas.results.map((order) => {
       const orderItem = order.order_items[0];
       const sizeAttribute = orderItem.item.variation_attributes?.find(
@@ -73,7 +74,7 @@ app.get("/sales", async (req, res) => {
         .ignore();
     }
 
-    res.json({ inseridos: salesData.length });
+    res.json(dadosVendas);
   } catch (error) {
     console.error("Erro na rota /sales:", error);
     res.status(500).json({
