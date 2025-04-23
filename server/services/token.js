@@ -55,6 +55,35 @@ async function refreshAccessToken() {
   }
 }
 
+app.post("/get-access-token", async (req, res) => {
+  try {
+    const headers = {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded",
+    };
+    const data = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.ID,
+      client_secret: process.env.KEY,
+      code: process.env.CODE,
+      redirect_uri: process.env.URI,
+    }).toString();
+
+    const response = await fetch(process.env.MERCADOLIVREURL, {
+      method: "POST",
+      headers: headers,
+      body: data,
+    });
+
+    const json = await response.json();
+    console.log(json);
+
+    res.json(json);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 cron.schedule("0 */5 * * *", () => {
   console.log("Executando cron job para atualizar o access token...");
   refreshAccessToken();
