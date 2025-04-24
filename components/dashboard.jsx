@@ -28,11 +28,11 @@ export default function Dashboard({
   bestSellingProducts,
   unitsSold,
   minStock,
+  salesReport,
 }) {
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
-  console.log(unitsSold?.[0]?.total_units, "Hey");
 
   function onFabricChange(fabric) {
     if (fabric === "poly") {
@@ -228,7 +228,7 @@ export default function Dashboard({
             />
           </TabsContent>
           <TabsContent value="sales" className="space-y-4">
-            <SalesContent />
+            <SalesContent salesReport={salesReport} />
           </TabsContent>
         </Tabs>
       </div>

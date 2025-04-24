@@ -10,6 +10,7 @@ import {
   bestSellingProducts,
   unitsSold,
   minimumStock,
+  salesReport,
 } from "./api/full-stock.js";
 
 import { router } from "./routes/login.js";
@@ -30,6 +31,7 @@ app.get("/api/ordered-products", orderedProducts);
 app.get("/api/best-selling-products", bestSellingProducts);
 app.get("/api/units-sold", unitsSold);
 app.get("/api/minimum-stock", minimumStock);
+app.get("/api/sales-report", salesReport);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend rodando em http://localhost:${PORT}`);

@@ -15,6 +15,7 @@ export default function Page() {
   const [bestSellingProducts, setBestSellingProducts] = useState([]);
   const [unitsSold, setUnitsSold] = useState([]);
   const [minStock, setMinStock] = useState([]);
+  const [salesReport, setSalesReport] = useState([]);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -68,6 +69,11 @@ export default function Page() {
       .then((res) => res.json())
       .then(setMinStock)
       .catch((err) => console.error("❌ Erro ao buscar estoque mínimo:", err));
+
+    fetch("http://localhost:3001/api/sales-report")
+      .then((res) => res.json())
+      .then(setSalesReport)
+      .catch((err) => console.error("❌ Erro ao buscar estoque mínimo:", err));
   }, [isAuthenticated]);
 
   // Loading state
@@ -89,6 +95,7 @@ export default function Page() {
           bestSellingProducts={bestSellingProducts}
           unitsSold={unitsSold}
           minStock={minStock}
+          salesReport={salesReport}
         />
       ) : (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">

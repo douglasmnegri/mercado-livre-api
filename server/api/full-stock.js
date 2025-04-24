@@ -10,6 +10,8 @@ import {
   getMinimumStock,
 } from "../db-queries/stock.js";
 
+import { getSalesReport } from "../db-queries/sales.js";
+
 export async function fullStock(req, res) {
   try {
     const stock = await getFullStock();
@@ -86,6 +88,16 @@ export async function minimumStock(req, res) {
   try {
     const minStock = await getMinimumStock();
     res.json(minStock);
+  } catch (error) {
+    console.error("Erro ao buscar estoque:", error);
+    res.status(500).json({ error: "Erro ao buscar estoque" });
+  }
+}
+
+export async function salesReport(req, res) {
+  try {
+    const sales = await getSalesReport();
+    res.json(sales);
   } catch (error) {
     console.error("Erro ao buscar estoque:", error);
     res.status(500).json({ error: "Erro ao buscar estoque" });

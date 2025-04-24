@@ -103,16 +103,17 @@ const salesData = [
 // Items per page
 const ITEMS_PER_PAGE = 5;
 
-export function SalesContent() {
+export function SalesContent({ salesReport }) {
+  console.log("SALES REPORT", salesReport);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calculate total pages
-  const totalPages = Math.ceil(salesData.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(salesReport.length / ITEMS_PER_PAGE);
 
   // Get current items
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-  const currentItems = salesData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = salesReport.slice(indexOfFirstItem, indexOfLastItem);
 
   // Change page
   const goToNextPage = () => {
@@ -143,12 +144,13 @@ export function SalesContent() {
               >
                 <div className="flex-shrink-0">
                   <Image
-                    src={sale.image || "/placeholder.svg"}
+                    src={sale.picture || "/placeholder.svg"}
                     alt={sale.title}
                     width={120}
                     height={120}
                     className="rounded-md object-cover"
                   />
+                  
                 </div>
                 <div className="flex-grow">
                   <h3 className="font-medium text-lg line-clamp-2">
@@ -166,7 +168,7 @@ export function SalesContent() {
                     <div>
                       <span className="text-muted-foreground">Unit Price:</span>
                       <span className="font-semibold ml-1">
-                        ${sale.unit_price.toFixed(2)}
+                        ${sale.unit_price}
                       </span>
                     </div>
                     <div>
@@ -182,7 +184,7 @@ export function SalesContent() {
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Total:</span>
                       <span className="font-bold text-base ml-1 text-green-600">
-                        ${(sale.unit_price * sale.quantity_sold).toFixed(2)}
+                        {/* ${(Number(sale.unit_price) * sale.quantity_sold).toFixed(2)} */}
                       </span>
                     </div>
                   </div>
