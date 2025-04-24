@@ -30,9 +30,8 @@ const dbConnection = knex(config[env]);
 app.get("/sales", async (req, res) => {
   try {
     const access_token = await databaseTokens.getAccessToken();
-    const currentTime = new Date(Date.now() - 3 * 60 * 60 * 1000); // 3 horas atrás
-    const oneHourAgo = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000); // 2 horas antes
-
+    const currentTime = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const oneHourAgo = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000); // 2 horas antes
 
     const fromDate = oneHourAgo.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
     const toDate = currentTime.toISOString().replace(/\.\d{3}Z/, ".000-00:00");
@@ -47,25 +46,38 @@ app.get("/sales", async (req, res) => {
       throw new Error(`Erro na API: ${response.statusText}`);
     }
 
-    const dadosVendas = await response.json();
+    const sales = await response.json();
 
+    const salesData = sales.results
+      .filter((order) => {
+        console.log("fulfilled:", order.fulfilled);
+        return order.fulfilled !== false;
+      })
+      .map((order) => {
+        const orderItem = order.order_items[0];
+        const sizeAttribute = orderItem.item.variation_attributes?.find(
+          (attr) => attr.id === "SIZE"
+        );
 
-    const salesData = dadosVendas.results.map((order) => {
-      const orderItem = order.order_items[0];
-      const sizeAttribute = orderItem.item.variation_attributes?.find(
-        (attr) => attr.id === "SIZE"
-      );
+        const orderId = order.pack_id || order.id;
 
-      return {
-        order_id: order.pack_id,
-        product_id: orderItem.item.id,
-        title: orderItem.item.title,
-        size: sizeAttribute?.value_name || "N/A",
-        unit_price: orderItem.unit_price,
-        quantity_sold: orderItem.quantity,
-        sale_date: order.date_closed,
-      };
-    });
+        return {
+          order_id: orderId,
+          product_id: orderItem.item.id,
+          title: orderItem.item.title,
+          size: sizeAttribute?.value_name || "N/A",
+          unit_price: orderItem.unit_price,
+          quantity_sold: orderItem.quantity,
+          sale_date: order.date_closed,
+        };
+      })
+      .filter((sale) => {
+        const isValid = sale.order_id !== null && sale.order_id !== undefined;
+        if (!isValid) {
+          console.warn("⚠️ Ignorando venda sem order_id:", sale);
+        }
+        return isValid;
+      });
 
     for (const sale of salesData) {
       await dbConnection("sales")
@@ -74,7 +86,7 @@ app.get("/sales", async (req, res) => {
         .ignore();
     }
 
-    res.json(dadosVendas);
+    res.json(salesData);
   } catch (error) {
     console.error("Erro na rota /sales:", error);
     res.status(500).json({
@@ -84,17 +96,27 @@ app.get("/sales", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3004;
-const server = app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.get("/orders", async (req, res) => {
+  const access_token = await databaseTokens.getAccessToken();
+  const url = "https://api.mercadolibre.com/orders/2000011407913558";
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${access_token.access_token}` },
+  });
+  const data = await response.json();
+  console.log(data);
+  res.json(data);
 });
 
+const PORT = process.env.PORT || 3004;
 cron.schedule("0 * * * *", async () => {
   try {
-    console.log("⏱️ Executando cron para /fetch-all-items...");
-    const res = await axios.get(`http://localhost:${PORT}/fetch-all-items`);
+    console.log("⏱️ Executando cron para /sales...");
+    const res = await axios.get(`http://localhost:${PORT}/sales`);
     console.log("✅ Fetch finalizado:", res.data.message);
   } catch (error) {
     console.error("❌ Erro no cron job:", error.message);
   }
+});
+const server = app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

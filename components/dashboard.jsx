@@ -83,9 +83,9 @@ export default function Dashboard({
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="sales">Sales</TabsTrigger>
+            <TabsTrigger value="overview">Geral</TabsTrigger>
+            <TabsTrigger value="analytics">Análise Estoque</TabsTrigger>
+            <TabsTrigger value="sales">Vendas</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -98,11 +98,11 @@ export default function Dashboard({
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{fullStock} items</div>
-                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                  {/* <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+20.1%</span>
                     <span>from last month</span>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
               <Card>
@@ -122,9 +122,9 @@ export default function Dashboard({
                   )}
 
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                    <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
+                    {/* <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+15.3%</span>
-                    <span>from last month</span>
+                    <span>from last month</span> */}
                   </div>
                 </CardContent>
               </Card>
@@ -138,9 +138,9 @@ export default function Dashboard({
                 <CardContent>
                   <div className="text-2xl font-bold">{activeProducts}</div>
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                    <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
+                    {/* <ArrowUpIcon className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-green-500">+12</span>
-                    <span>new products this month</span>
+                    <span>new products this month</span> */}
                   </div>
                 </CardContent>
               </Card>

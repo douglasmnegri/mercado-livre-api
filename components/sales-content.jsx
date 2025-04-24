@@ -6,100 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Sample sales data
-const salesData = [
-  {
-    product_id: "MLB5026163190",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Rosa Pink",
-    size: "G",
-    unit_price: 24.01,
-    quantity_sold: 2,
-    sale_date: "2025-04-20T17:20:11.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163191",
-    title: "Camiseta Click Camisetas Algodão Premium Azul Marinho",
-    size: "M",
-    unit_price: 29.99,
-    quantity_sold: 3,
-    sale_date: "2025-04-20T16:45:22.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163192",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Branca",
-    size: "P",
-    unit_price: 22.5,
-    quantity_sold: 5,
-    sale_date: "2025-04-20T15:30:45.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163193",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Preta",
-    size: "GG",
-    unit_price: 24.01,
-    quantity_sold: 4,
-    sale_date: "2025-04-20T14:15:33.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163194",
-    title: "Camiseta Click Camisetas Algodão Premium Verde Militar",
-    size: "G",
-    unit_price: 29.99,
-    quantity_sold: 2,
-    sale_date: "2025-04-20T13:10:18.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163195",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Amarela",
-    size: "M",
-    unit_price: 22.5,
-    quantity_sold: 3,
-    sale_date: "2025-04-20T12:05:42.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163196",
-    title: "Camiseta Click Camisetas Algodão Premium Cinza",
-    size: "P",
-    unit_price: 29.99,
-    quantity_sold: 1,
-    sale_date: "2025-04-20T11:30:27.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163197",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Vermelha",
-    size: "G",
-    unit_price: 24.01,
-    quantity_sold: 2,
-    sale_date: "2025-04-20T10:45:15.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163198",
-    title: "Camiseta Click Camisetas Algodão Premium Laranja",
-    size: "M",
-    unit_price: 29.99,
-    quantity_sold: 1,
-    sale_date: "2025-04-20T09:20:33.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-  {
-    product_id: "MLB5026163199",
-    title: "Camiseta Click Camisetas Algodão Vortex Fio 30.1 Roxa",
-    size: "GG",
-    unit_price: 24.01,
-    quantity_sold: 3,
-    sale_date: "2025-04-20T08:15:51.000-04:00",
-    image: "/placeholder.svg?height=120&width=120",
-  },
-];
-
 // Items per page
 const ITEMS_PER_PAGE = 5;
 
@@ -107,15 +13,12 @@ export function SalesContent({ salesReport }) {
   console.log("SALES REPORT", salesReport);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Calculate total pages
   const totalPages = Math.ceil(salesReport.length / ITEMS_PER_PAGE);
 
-  // Get current items
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = salesReport.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Change page
   const goToNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
@@ -124,15 +27,18 @@ export function SalesContent({ salesReport }) {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    return format(new Date(dateString), "PPP 'at' p");
-  };
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sales Data</CardTitle>
+        <CardTitle>Informações de Vendas</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -149,8 +55,9 @@ export function SalesContent({ salesReport }) {
                     width={120}
                     height={120}
                     className="rounded-md object-cover"
+                    style={{ width: 'auto' }} 
+
                   />
-                  
                 </div>
                 <div className="flex-grow">
                   <h3 className="font-medium text-lg line-clamp-2">
@@ -158,21 +65,23 @@ export function SalesContent({ salesReport }) {
                   </h3>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Product ID:</span>
+                      <span className="text-muted-foreground">ID do Produto:</span>
                       <span className="font-mono ml-1">{sale.product_id}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Size:</span>
+                      <span className="text-muted-foreground">Tamanho:</span>
                       <span className="font-semibold ml-1">{sale.size}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Unit Price:</span>
+                      <span className="text-muted-foreground">
+                        Preço Unitário:
+                      </span>
                       <span className="font-semibold ml-1">
-                        ${sale.unit_price}
+                        R$ {sale.unit_price}
                       </span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Quantity:</span>
+                      <span className="text-muted-foreground">Quantidade:</span>
                       <span className="font-semibold ml-1">
                         {sale.quantity_sold}
                       </span>
@@ -184,7 +93,7 @@ export function SalesContent({ salesReport }) {
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Total:</span>
                       <span className="font-bold text-base ml-1 text-green-600">
-                        {/* ${(Number(sale.unit_price) * sale.quantity_sold).toFixed(2)} */}
+                        R$ {(Number(sale.unit_price) * sale.quantity_sold).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -193,12 +102,11 @@ export function SalesContent({ salesReport }) {
             ))}
           </div>
 
-          {/* Pagination controls */}
           <div className="flex items-center justify-between pt-4 border-t">
             <div className="text-sm text-muted-foreground">
               Showing {indexOfFirstItem + 1}-
-              {Math.min(indexOfLastItem, salesData.length)} of{" "}
-              {salesData.length} items
+              {Math.min(indexOfLastItem, salesReport.length)} of{" "}
+              {salesReport.length} items
             </div>
             <div className="flex items-center space-x-2">
               <Button
