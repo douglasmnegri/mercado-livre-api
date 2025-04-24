@@ -16,9 +16,10 @@ import {
   PackageIcon,
   TrendingUpIcon,
 } from "lucide-react";
-import ChangeDataset from "./ui/button-fabric";
+// Remove the import for ChangeDataset since the file doesn't exist
 import { useState, useEffect } from "react";
 import { AnalyticsContent } from "../components/analytics-content";
+import { SalesContent } from "./sales-content";
 
 export default function Dashboard({
   fullStock,
@@ -84,7 +85,7 @@ export default function Dashboard({
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="sales">Sales</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -155,10 +156,38 @@ export default function Dashboard({
                         tamanho
                       </CardDescription>
                     </div>
-                    <ChangeDataset
-                      fabricType={selectedFabric}
-                      onFabricChange={onFabricChange}
-                    />{" "}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onFabricChange("cott")}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          selectedFabric === "Camiseta Algodão"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        Algodão
+                      </button>
+                      <button
+                        onClick={() => onFabricChange("poly")}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          selectedFabric === "Camiseta Poliéster"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        Poliéster
+                      </button>
+                      <button
+                        onClick={() => onFabricChange("polo")}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          selectedFabric === "Camisa Polo"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        Polo
+                      </button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pl-2">
@@ -198,22 +227,8 @@ export default function Dashboard({
               stock={fullStock}
             />
           </TabsContent>
-          <TabsContent value="reports" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-1">
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Reports</CardTitle>
-                  <CardDescription>
-                    Generated reports will appear here
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center border rounded-md">
-                    <p className="text-muted-foreground">Reports content</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="sales" className="space-y-4">
+            <SalesContent />
           </TabsContent>
         </Tabs>
       </div>
