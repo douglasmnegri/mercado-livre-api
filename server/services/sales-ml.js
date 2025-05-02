@@ -27,6 +27,8 @@ const env =
   process.env.NODE_ENV !== "production" ? "development" : "production";
 const dbConnection = knex(config[env]);
 
+const PORT = process.env.PORT || 3004;
+
 app.get("/sales", async (req, res) => {
   try {
     const access_token = await databaseTokens.getAccessToken();
@@ -98,7 +100,7 @@ app.get("/sales", async (req, res) => {
 
 app.get("/orders", async (req, res) => {
   const access_token = await databaseTokens.getAccessToken();
-  const url = "https://api.mercadolibre.com/orders/2000011407913558";
+  const url = "https://api.mercadolibre.com/orders/2000006515162995";
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${access_token.access_token}` },
   });
@@ -107,7 +109,8 @@ app.get("/orders", async (req, res) => {
   res.json(data);
 });
 
-const PORT = process.env.PORT || 3004;
+
+
 cron.schedule("0 * * * *", async () => {
   try {
     console.log("⏱️ Executando cron para /sales...");

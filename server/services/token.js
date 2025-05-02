@@ -90,7 +90,6 @@ cron.schedule("0 */5 * * *", () => {
   refreshAccessToken();
 });
 
-// refreshAccessToken();
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {

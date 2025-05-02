@@ -128,6 +128,10 @@ app.get("/fetch-all-items", async (req, res) => {
   }
 });
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
 
 cron.schedule("0 * * * *", async () => {
   try {

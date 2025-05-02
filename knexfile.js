@@ -1,8 +1,10 @@
-// Update with your config settings.
+require("dotenv").config();
 
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
+
+console.log(process.env.DATABASE_URL);
 module.exports = {
   development: {
     client: "postgresql",
@@ -40,12 +42,7 @@ module.exports = {
 
   production: {
     client: "postgresql",
-    connection: {
-      host: "localhost",
-      user: "douglasmnegri",
-      password: "ml",
-      database: "mercado_livre_db",
-    },
+    connection: process.env.DATABASE_URL,
     pool: {
       min: 2,
       max: 10,
