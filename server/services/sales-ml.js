@@ -109,12 +109,10 @@ app.get("/orders", async (req, res) => {
   res.json(data);
 });
 
-
-
 cron.schedule("0 * * * *", async () => {
   try {
-    console.log("⏱️ Executando cron para /sales...");
-    const res = await axios.get(`http://localhost:${PORT}/sales`);
+    const publicUrl = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+    const res = await axios.get(`${publicUrl}/sales`);
     console.log("✅ Fetch finalizado:", res.data.message);
   } catch (error) {
     console.error("❌ Erro no cron job:", error.message);

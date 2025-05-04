@@ -135,8 +135,8 @@ app.listen(PORT, () => {
 
 cron.schedule("0 * * * *", async () => {
   try {
-    console.log("⏱️ Executando cron para /fetch-all-items...");
-    const res = await axios.get(`http://localhost:${PORT}/fetch-all-items`);
+    const publicUrl = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+    const res = await axios.get(`${publicUrl}/fetch-all-items`);
     console.log("✅ Fetch finalizado:", res.data.message);
   } catch (error) {
     console.error("❌ Erro no cron job:", error.message);

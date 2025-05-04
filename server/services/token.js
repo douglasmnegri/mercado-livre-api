@@ -85,6 +85,8 @@ app.post("/get-access-token", async (req, res) => {
   }
 });
 
+
+
 cron.schedule("0 */5 * * *", () => {
   console.log("Executando cron job para atualizar o access token...");
   refreshAccessToken();

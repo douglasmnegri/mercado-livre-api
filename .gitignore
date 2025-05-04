@@ -29,3 +29,12 @@ pnpm-lock.yaml
 node_modules/
 dist/
 *.log
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+
+# Deploy
+deploy.zip
