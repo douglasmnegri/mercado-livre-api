@@ -16,6 +16,7 @@ import {
   PackageIcon,
   TrendingUpIcon,
 } from "lucide-react";
+
 // Remove the import for ChangeDataset since the file doesn't exist
 import { useState, useEffect } from "react";
 import { AnalyticsContent } from "../components/analytics-content";
@@ -33,6 +34,7 @@ export default function Dashboard({
   const [selectedFabric, setSelectedFabric] = useState("Camiseta Algodão");
   const [routeName, setRouteName] = useState("cotton");
   const [currentProduct, setCurrentProduct] = useState([]);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
   function onFabricChange(fabric) {
     if (fabric === "poly") {
@@ -49,18 +51,14 @@ export default function Dashboard({
 
   useEffect(() => {
     console.log("🔍 Fazendo requisição para o backend...");
-    fetch(`http://localhost:3001/api/${routeName}`)
+    fetch(`${apiUrl}/api/${routeName}`)
       .then((res) => {
-        console.log("✅ Resposta recebida do backend");
         return res.json();
       })
       .then((data) => {
-        console.log("📦 Dados recebidos:", data);
         setCurrentProduct(data);
       })
-      .catch((err) => {
-        console.error("❌ Erro ao buscar estoque:", err);
-      });
+      .catch((err) => {});
   }, [routeName]);
 
   const handleLogout = () => {

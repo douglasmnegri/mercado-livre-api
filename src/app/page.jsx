@@ -40,7 +40,9 @@ export default function Page() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    fetch("http://localhost:3001/api/full-stock")
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+    fetch(`${apiUrl}/api/full-stock`)
       .then((res) => res.json())
       .then((data) => {
         setStock(data.stock[0].sum);
@@ -48,35 +50,36 @@ export default function Page() {
       })
       .catch((err) => console.error("❌ Erro ao buscar estoque:", err));
 
-    fetch("http://localhost:3001/api/ordered-products")
+    fetch(`${apiUrl}/api/ordered-products`)
       .then((res) => res.json())
       .then(setOrderedProducts)
       .catch((err) => console.error("❌ Erro ao buscar pedidos:", err));
 
-    fetch("http://localhost:3001/api/best-selling-products")
+    fetch(`${apiUrl}/api/best-selling-products`)
       .then((res) => res.json())
       .then(setBestSellingProducts)
       .catch((err) => console.error("❌ Erro ao buscar mais vendidos:", err));
 
-    fetch("http://localhost:3001/api/units-sold")
+    fetch(`${apiUrl}/api/units-sold`)
       .then((res) => res.json())
       .then(setUnitsSold)
       .catch((err) =>
         console.error("❌ Erro ao buscar unidades vendidas:", err)
       );
 
-    fetch("http://localhost:3001/api/minimum-stock")
+    fetch(`${apiUrl}/api/minimum-stock`)
       .then((res) => res.json())
       .then(setMinStock)
       .catch((err) => console.error("❌ Erro ao buscar estoque mínimo:", err));
 
-    fetch("http://localhost:3001/api/sales-report")
+    fetch(`${apiUrl}/api/sales-report`)
       .then((res) => res.json())
       .then(setSalesReport)
-      .catch((err) => console.error("❌ Erro ao buscar estoque mínimo:", err));
+      .catch((err) =>
+        console.error("❌ Erro ao buscar relatório de vendas:", err)
+      );
   }, [isAuthenticated]);
 
-  // Loading state
   if (isAuthenticated === null) {
     return (
       <div className="flex justify-center items-center h-screen">
