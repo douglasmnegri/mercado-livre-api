@@ -133,7 +133,7 @@ app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
-cron.schedule("0 * * * *", async () => {
+cron.schedule("0 */2 * * *", async () => {
   try {
     const publicUrl = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
     const res = await axios.get(`${publicUrl}/fetch-all-items`);
