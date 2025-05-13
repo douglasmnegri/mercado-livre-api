@@ -1,21 +1,15 @@
-import dotenv from "dotenv";
-dotenv.config({ path: "../../.env" });
+require("dotenv").config({ path: "../../.env" });
 
-import knex from "knex";
-import config from "../../knexfile.js";
+const dbConnection = require("../db/index.js");
 
-const env =
-  process.env.NODE_ENV !== "production" ? "development" : "production";
-const dbConnection = knex(config[env]);
-
-export async function getFullStock() {
+async function getFullStock() {
   const fullStock = await dbConnection("products").sum("stock");
 
   console.log(fullStock);
   return fullStock;
 }
 
-export async function getCottonStock() {
+async function getCottonStock() {
   const productStock = await dbConnection("products")
     .select("color")
     .sum({ stock: "stock" })
@@ -27,7 +21,7 @@ export async function getCottonStock() {
   return productStock;
 }
 
-export async function getPolyesterStock() {
+async function getPolyesterStock() {
   const productStock = await dbConnection("products")
     .select("color")
     .sum({ stock: "stock" })
@@ -40,7 +34,7 @@ export async function getPolyesterStock() {
   return productStock;
 }
 
-export async function getPoloStock() {
+async function getPoloStock() {
   const productStock = await dbConnection("products")
     .select("color")
     .sum({ stock: "stock" })
@@ -52,7 +46,7 @@ export async function getPoloStock() {
   return productStock;
 }
 
-export async function getActiveProducts() {
+async function getActiveProducts() {
   const activeProducts = await dbConnection("products")
     .count("id")
     .where("stock", ">", 0);
@@ -61,7 +55,7 @@ export async function getActiveProducts() {
   return activeProducts;
 }
 
-export async function getUnitsSold() {
+async function getUnitsSold() {
   const unitsSold = await dbConnection("products").select(
     dbConnection.raw("SUM(sold) as total_units")
   );
@@ -70,7 +64,7 @@ export async function getUnitsSold() {
   return unitsSold;
 }
 
-export async function getOrderedProducts() {
+async function getOrderedProducts() {
   const orderedProducts = await dbConnection("products as p")
     .join("min_stock as m", "p.size", "m.size")
     .select(
@@ -108,7 +102,7 @@ export async function getOrderedProducts() {
   return orderedProducts;
 }
 
-export async function getBestSellingProducts() {
+async function getBestSellingProducts() {
   const bestProducts = await dbConnection("products")
     .select(
       "general_id",
@@ -122,9 +116,21 @@ export async function getBestSellingProducts() {
   return bestProducts;
 }
 
-export async function getMinimumStock() {
+async function getMinimumStock() {
   const minStock = await dbConnection("min_stock");
 
   console.log(minStock);
   return minStock;
 }
+
+module.exports = {
+  getFullStock,
+  getCottonStock,
+  getPolyesterStock,
+  getPoloStock,
+  getActiveProducts,
+  getUnitsSold,
+  getOrderedProducts,
+  getBestSellingProducts,
+  getMinimumStock
+};

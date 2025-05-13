@@ -40,3 +40,8 @@ dist/
 deploy.zip
 .ebextensions/
 Procfile
+
+
+rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' \
+-e "ssh -i ~/.ssh/bc-doug-macbookair.pem" \
+. ubuntu@ec2-54-188-57-100.us-west-2.compute.amazonaws.com:~/app
