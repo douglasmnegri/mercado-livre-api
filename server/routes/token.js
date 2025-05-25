@@ -1,4 +1,6 @@
-const express = require('express');
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+const express = require("express");
 const databaseTokens = require("../db-queries/refresh-token.js");
 
 const router = express.Router();
@@ -24,7 +26,6 @@ router.post("/get-access-token", async (req, res) => {
     });
 
     const json = await response.json();
-    console.log(json);
     res.json(json);
   } catch (error) {
     console.error("Error:", error);
@@ -55,7 +56,6 @@ async function refreshAccessToken() {
     });
 
     const json = await response.json();
-    console.log("Token atualizado:", json);
 
     await databaseTokens.updateRefreshToken(
       json.refresh_token,
@@ -66,4 +66,4 @@ async function refreshAccessToken() {
   }
 }
 
-module.exports = { router, refreshAccessToken }; 
+module.exports = { router, refreshAccessToken };

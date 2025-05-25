@@ -17,7 +17,10 @@ const {
 } = require("./api/full-stock.js");
 
 const { router: loginRouter } = require("./routes/login.js");
-const { router: tokenRouter, refreshAccessToken } = require("./routes/token.js");
+const {
+  router: tokenRouter,
+  refreshAccessToken,
+} = require("./routes/token.js");
 const { router: mercadoLivreRouter } = require("./routes/mercado-livre.js");
 const { router: salesRouter } = require("./routes/sales.js");
 const { router: stockRouter } = require("./routes/stock.js");
@@ -27,13 +30,33 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'http://54.188.35.92:3000'  // Production frontend URL
-    : 'http://localhost:3000',      // Development frontend URL
-  credentials: true
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://aminhamarca.com",
+  "https://aminhamarca.com",
+  "http://18.236.159.137:3000",,
+  "http://18.236.159.137"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      console.log("🌐 Origin da requisição:", origin);
+
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -41,7 +64,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ error: "Something went wrong!" });
 });
 
 // API Routes
@@ -62,30 +85,28 @@ app.get("/api/units-sold", unitsSold);
 app.get("/api/minimum-stock", minimumStock);
 app.get("/api/sales-report", salesReport);
 
-// Schedule cron jobs
+
 cron.schedule("0 * * * *", async () => {
   try {
-    const publicUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || `http://localhost:${PORT}`;
+    const publicUrl = process.env.EC2_PUBLIC_URL || "http://localhost:3001";
+    console.log(publicUrl);
     const res = await axios.get(`${publicUrl}/api/sales`);
-    console.log("✅ Fetch finalizado:", res.data.message);
   } catch (error) {
     console.error("❌ Erro no cron job:", error.message);
   }
 });
 
-cron.schedule("0 */2 * * *", async () => {
+cron.schedule("* * * * *", async () => {
   try {
-    const publicUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || `http://localhost:${PORT}`;
+    const publicUrl = process.env.EC2_PUBLIC_URL || "http://localhost:3001";
     const res = await axios.get(`${publicUrl}/api/stock/fetch-all-items`);
-    console.log("✅ Fetch finalizado:", res.data.message);
   } catch (error) {
     console.error("❌ Erro no cron job:", error.message);
   }
 });
+
 
 // Iniciar o servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Backend rodando em http://0.0.0.0:${PORT}`);
 });
-
-

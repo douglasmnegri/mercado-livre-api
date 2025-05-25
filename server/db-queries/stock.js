@@ -5,7 +5,6 @@ const dbConnection = require("../db/index.js");
 async function getFullStock() {
   const fullStock = await dbConnection("products").sum("stock");
 
-  console.log(fullStock);
   return fullStock;
 }
 
@@ -17,7 +16,6 @@ async function getCottonStock() {
     .groupBy("color")
     .orderBy("stock", "desc");
 
-  console.log(productStock);
   return productStock;
 }
 
@@ -30,7 +28,6 @@ async function getPolyesterStock() {
     .groupBy("color")
     .orderBy("stock", "desc");
 
-  console.log(productStock);
   return productStock;
 }
 
@@ -42,7 +39,6 @@ async function getPoloStock() {
     .groupBy("color")
     .orderBy("stock", "desc");
 
-  console.log(productStock);
   return productStock;
 }
 
@@ -51,7 +47,6 @@ async function getActiveProducts() {
     .count("id")
     .where("stock", ">", 0);
 
-  console.log(activeProducts);
   return activeProducts;
 }
 
@@ -60,7 +55,6 @@ async function getUnitsSold() {
     dbConnection.raw("SUM(sold) as total_units")
   );
 
-  console.log(unitsSold);
   return unitsSold;
 }
 
@@ -98,7 +92,6 @@ async function getOrderedProducts() {
       },
     ]);
 
-  console.log(orderedProducts);
   return orderedProducts;
 }
 
@@ -112,15 +105,27 @@ async function getBestSellingProducts() {
     .groupBy("general_id", "type", "fabric", "color")
     .orderBy("units", "desc")
     .limit(7);
-  console.log(bestProducts);
   return bestProducts;
 }
 
 async function getMinimumStock() {
   const minStock = await dbConnection("min_stock");
 
-  console.log(minStock);
   return minStock;
+}
+
+async function updateStock(productId, newStock) {
+  try {
+    const updatedProduct = await dbConnection("products")
+      .where({ id: productId })
+      .update({ stock: newStock })
+      .returning("*");
+
+    return updatedProduct;
+  } catch (error) {
+    console.error("Error updating stock:", error);
+    throw error;
+  }
 }
 
 module.exports = {
@@ -132,5 +137,6 @@ module.exports = {
   getUnitsSold,
   getOrderedProducts,
   getBestSellingProducts,
-  getMinimumStock
+  getMinimumStock,
+  updateStock
 };

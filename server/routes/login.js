@@ -21,9 +21,6 @@ router.post("/login", async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
-    console.log('Senha recebida:', password);
-    console.log('Hash no banco:', user.password_hash);
-
     if (!isMatch) {
       return res.status(401).json({ error: "Senha incorreta" });
     }
