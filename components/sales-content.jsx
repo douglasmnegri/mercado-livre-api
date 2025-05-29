@@ -10,7 +10,6 @@ import { SalesAnalytics } from "./sales-analytics-chart";
 const ITEMS_PER_PAGE = 5;
 
 export function SalesContent({ salesReport }) {
-  console.log("SALES REPORT", salesReport);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(salesReport.length / ITEMS_PER_PAGE);
@@ -37,7 +36,7 @@ export function SalesContent({ salesReport }) {
 
   return (
     <div className="space-y-6">
-      <SalesAnalytics />
+      <SalesAnalytics data={salesReport} />
 
       <Card>
         <CardHeader>

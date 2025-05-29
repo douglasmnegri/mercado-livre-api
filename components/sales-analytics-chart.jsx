@@ -1,13 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
-import {
-  format,
-  subDays,
-  startOfDay,
-  startOfMonth,
-  isWithinInterval,
-} from "date-fns";
-import { ptBR } from "date-fns/locale";
+
 import {
   Card,
   CardContent,
@@ -22,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -32,208 +25,285 @@ import {
   Tooltip,
 } from "recharts";
 
-// Mock products
-const mockProducts = [
-  {
-    id: "MLB5026163190",
-    title: "Camiseta Algodão Vortex Rosa Pink",
-    price: 24.01,
-  },
-  {
-    id: "MLB5026163191",
-    title: "Camiseta Algodão Premium Azul Marinho",
-    price: 29.99,
-  },
-  { id: "MLB5026163192", title: "Camiseta Algodão Vortex Branca", price: 22.5 },
-  { id: "MLB5026163193", title: "Camiseta Algodão Vortex Preta", price: 24.01 },
-  {
-    id: "MLB5026163194",
-    title: "Camiseta Algodão Premium Verde Militar",
-    price: 29.99,
-  },
-];
-
-// Mock sales data with dates spanning over the last month
-const generateMockSalesData = () => {
-  const today = new Date();
-  const data = [];
-
-  // Generate sales for the last 30 days
-  for (let i = 30; i >= 0; i--) {
-    const date = subDays(today, i);
-
-    // Generate 1-3 sales per day
-    const salesCount = Math.floor(Math.random() * 3) + 1;
-
-    for (let j = 0; j < salesCount; j++) {
-      // Random product selection
-      const productIndex = Math.floor(Math.random() * mockProducts.length);
-      const product = mockProducts[productIndex];
-
-      // Random size
-      const sizes = ["P", "M", "G", "GG", "XG"];
-      const size = sizes[Math.floor(Math.random() * sizes.length)];
-
-      // Random quantity between 1 and 5
-      const quantity = Math.floor(Math.random() * 5) + 1;
-
-      data.push({
-        order_id: `ORD-${date.getTime()}-${j}`,
-        product_id: product.id,
-        title: product.title,
-        size: size,
-        unit_price: product.price,
-        quantity_sold: quantity,
-        sale_date: date.toISOString(),
-        total: product.price * quantity,
-      });
-    }
-  }
-
-  return data;
-};
-
-const mockSalesData = generateMockSalesData();
-
-export function SalesAnalytics() {
-  const [timeFilter, setTimeFilter] = useState("15days");
+export function SalesAnalytics({ data }) {
+  const [timeFilter, setTimeFilter] = useState("30days");
   const [dataType, setDataType] = useState("revenue");
   const [productFilter, setProductFilter] = useState("all");
+  const [salesReport, setSalesReport] = useState([]);
 
-  // Filter data based on time period
-  const filteredByTime = useMemo(() => {
-    const today = new Date();
-    const todayStart = startOfDay(today);
+  // Get unique products for the filter
+  const uniqueProducts = Array.from(
+    new Set(data?.map((item) => item.title) || [])
+  ).slice(0, 10); // Limit to first 10 products for better UX
 
-    let startDate;
-    if (timeFilter === "day") {
-      startDate = todayStart;
-    } else if (timeFilter === "15days") {
-      startDate = subDays(todayStart, 14);
-    } else if (timeFilter === "month") {
-      startDate = startOfMonth(today);
+  const processData = () => {
+    if (!data || data.length === 0) {
+      setSalesReport([]);
+      return;
     }
 
-    return mockSalesData.filter((sale) => {
-      const saleDate = new Date(sale.sale_date);
-      return isWithinInterval(saleDate, { start: startDate, end: today });
-    });
-  }, [timeFilter]);
+    // Get current date in UTC
+    const now = new Date();
 
-  // Further filter by product if needed
-  const filteredData = useMemo(() => {
-    if (productFilter === "all") {
-      return filteredByTime;
-    }
-    return filteredByTime.filter((sale) => sale.product_id === productFilter);
-  }, [filteredByTime, productFilter]);
+    // Create UTC dates for filtering - set to end of current day to include all of today
+    const todayEnd = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+    const filterDate = new Date(todayEnd);
 
-  // Aggregate data by date for the chart
-  const chartData = useMemo(() => {
-    const aggregatedData = {};
-
-    filteredData.forEach((sale) => {
-      const date = format(new Date(sale.sale_date), "yyyy-MM-dd");
-
-      if (!aggregatedData[date]) {
-        aggregatedData[date] = {
-          date,
-          revenue: 0,
-          units: 0,
-          orders: new Set(),
-        };
-      }
-
-      // Sum revenue
-      aggregatedData[date].revenue += sale.unit_price * sale.quantity_sold;
-
-      // Sum units
-      aggregatedData[date].units += sale.quantity_sold;
-
-      // Count unique orders
-      aggregatedData[date].orders.add(sale.order_id);
-    });
-
-    // Convert to array and format for chart
-    return Object.values(aggregatedData).map((item) => ({
-      ...item,
-      orders: item.orders.size,
-      date: format(new Date(item.date), "dd/MM", { locale: ptBR }),
-      revenue: Number(item.revenue.toFixed(2)),
-    }));
-  }, [filteredData]);
-
-  // Get the appropriate y-axis data based on selected data type
-  const getYAxisData = () => {
-    switch (dataType) {
-      case "revenue":
-        return "revenue";
-      case "units":
-        return "units";
-      case "orders":
-        return "orders";
-      default:
-        return "revenue";
-    }
-  };
-
-  // Format the y-axis label based on data type
-  const formatYAxisLabel = (value) => {
-    if (dataType === "revenue") {
-      return `R$ ${value}`;
-    }
-    return value;
-  };
-
-  // Get chart title based on selected data type
-  const getChartTitle = () => {
-    switch (dataType) {
-      case "revenue":
-        return "Receita de Vendas";
-      case "units":
-        return "Unidades Vendidas";
-      case "orders":
-        return "Número de Pedidos";
-      default:
-        return "Vendas";
-    }
-  };
-
-  // Get chart description based on selected time filter
-  const getChartDescription = () => {
+    // Set filter date based on selection (in UTC)
     switch (timeFilter) {
       case "day":
-        return "Vendas de hoje";
+        filterDate.setUTCDate(todayEnd.getUTCDate() - 1);
+        break;
       case "15days":
-        return "Vendas dos últimos 15 dias";
+        filterDate.setUTCDate(todayEnd.getUTCDate() - 15);
+        break;
+      case "30days":
+        filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
+        break;
       case "month":
-        return "Vendas do mês atual";
+        filterDate.setUTCMonth(todayEnd.getUTCMonth() - 1);
+        break;
       default:
-        return "Vendas";
+        filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
     }
+
+    // Filter data by date and product - using UTC comparison
+    const filteredData = data.filter((item) => {
+      const saleDate = new Date(item.sale_date);
+      const matchesDate = saleDate >= filterDate && saleDate <= todayEnd;
+      const matchesProduct =
+        productFilter === "all" || item.title === productFilter;
+      return matchesDate && matchesProduct;
+    });
+
+    // Group data by date (using UTC date strings)
+    const groupedData = {};
+
+    filteredData.forEach((item) => {
+      const saleDate = new Date(item.sale_date);
+      // Extract date in YYYY-MM-DD format using UTC
+      const dateStr = `${saleDate.getUTCFullYear()}-${String(
+        saleDate.getUTCMonth() + 1
+      ).padStart(2, "0")}-${String(saleDate.getUTCDate()).padStart(2, "0")}`;
+
+      if (!groupedData[dateStr]) {
+        groupedData[dateStr] = [];
+      }
+      groupedData[dateStr].push(item);
+    });
+
+    // Calculate metrics for each date
+    const chartData = Object.entries(groupedData).map(([date, items]) => {
+      let value = 0;
+
+      switch (dataType) {
+        case "revenue":
+          value = items.reduce(
+            (sum, item) =>
+              sum + Number.parseFloat(item.unit_price) * item.quantity_sold,
+            0
+          );
+          break;
+        case "units":
+          value = items.reduce((sum, item) => sum + item.quantity_sold, 0);
+          break;
+        case "orders":
+          value = new Set(items.map((item) => item.order_id)).size;
+          break;
+      }
+
+      // Parse the date string to create a date object for formatting
+      const [year, month, day] = date.split("-").map(Number);
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
+
+      return {
+        date,
+        value: Math.round(value * 100) / 100, // Round to 2 decimal places
+        formattedDate: `${String(dateObj.getUTCDate()).padStart(
+          2,
+          "0"
+        )}/${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}`,
+        isToday:
+          dateObj.getUTCFullYear() === now.getUTCFullYear() &&
+          dateObj.getUTCMonth() === now.getUTCMonth() &&
+          dateObj.getUTCDate() === now.getUTCDate(),
+      };
+    });
+
+    // Sort by date
+    chartData.sort((a, b) => a.date.localeCompare(b.date));
+
+    // Create date range using UTC dates
+    const startDateParts = filterDate
+      .toISOString()
+      .split("T")[0]
+      .split("-")
+      .map(Number);
+    const endDateParts = todayEnd
+      .toISOString()
+      .split("T")[0]
+      .split("-")
+      .map(Number);
+
+    const startDate = new Date(
+      Date.UTC(startDateParts[0], startDateParts[1] - 1, startDateParts[2])
+    );
+    const endDate = new Date(
+      Date.UTC(endDateParts[0], endDateParts[1] - 1, endDateParts[2])
+    );
+
+    // Fill all dates in the range with 0 values for missing dates
+    const filledData = [];
+
+    // Loop through each day in the range using UTC dates
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setUTCDate(d.getUTCDate() + 1)
+    ) {
+      // Create date string in YYYY-MM-DD format
+      const dateStr = `${d.getUTCFullYear()}-${String(
+        d.getUTCMonth() + 1
+      ).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+      const existingData = chartData.find((item) => item.date === dateStr);
+
+      if (existingData) {
+        filledData.push(existingData);
+      } else {
+        // Check if this date is today
+        const isToday =
+          d.getUTCFullYear() === now.getUTCFullYear() &&
+          d.getUTCMonth() === now.getUTCMonth() &&
+          d.getUTCDate() === now.getUTCDate();
+
+        filledData.push({
+          date: dateStr,
+          value: 0,
+          formattedDate: `${String(d.getUTCDate()).padStart(2, "0")}/${String(
+            d.getUTCMonth() + 1
+          ).padStart(2, "0")}`,
+          isToday,
+        });
+      }
+    }
+
+    // Set the processed data
+    setSalesReport(filledData);
+
+    // Debug log to verify dates
+    console.log(
+      "Date range:",
+      filterDate.toISOString(),
+      "to",
+      todayEnd.toISOString()
+    );
+    console.log("Last few dates in chart:", filledData.slice(-3));
+  };
+
+  useEffect(() => {
+    processData();
+  }, [data, timeFilter, dataType, productFilter]);
+
+  const formatTooltipValue = (value) => {
+    switch (dataType) {
+      case "revenue":
+        return `R$ ${value.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}`;
+      case "units":
+        return `${value} unidades`;
+      case "orders":
+        return `${value} pedidos`;
+      default:
+        return value;
+    }
+  };
+
+  const getYAxisLabel = () => {
+    switch (dataType) {
+      case "revenue":
+        return "Receita (R$)";
+      case "units":
+        return "Unidades";
+      case "orders":
+        return "Pedidos";
+      default:
+        return "";
+    }
+  };
+
+  // Calculate the appropriate interval for X-axis labels based on the number of data points
+  const calculateXAxisInterval = () => {
+    if (salesReport.length <= 15) return 0; // Show all labels for 15 or fewer points
+    if (salesReport.length <= 30) return 1; // Show every other label for 16-30 points
+    if (salesReport.length <= 60) return 2; // Show every third label for 31-60 points
+    return 3; // Show every fourth label for more than 60 points
+  };
+
+  // Custom tick for X-axis to highlight today
+  const CustomXAxisTick = (props) => {
+    const { x, y, payload } = props;
+    const isToday = salesReport[payload.index]?.isToday;
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={16}
+          textAnchor="end"
+          fill={isToday ? "#ff4d4f" : "#666"}
+          fontWeight={isToday ? "bold" : "normal"}
+          fontSize={12}
+          transform="rotate(-45)"
+        >
+          {payload.value}
+        </text>
+      </g>
+    );
   };
 
   return (
-    <Card className="col-span-1">
+    <Card className="col-span-1" data-testid="sales-analytics-card">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <CardTitle>{getChartTitle()}</CardTitle>
-            <CardDescription>{getChartDescription()}</CardDescription>
+            <CardTitle>Análise de vendas</CardTitle>
+            <CardDescription>
+              Visualize os dados das vendas de acordo com os filtros
+              selecionados.
+            </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <Select
+              value={timeFilter}
+              onValueChange={(value) => setTimeFilter(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="day">Hoje</SelectItem>
                 <SelectItem value="15days">Últimos 15 dias</SelectItem>
+                <SelectItem value="30days">Últimos 30 dias</SelectItem>
                 <SelectItem value="month">Este mês</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={dataType} onValueChange={setDataType}>
+            <Select
+              value={dataType}
+              onValueChange={(value) => setDataType(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tipo de dado" />
               </SelectTrigger>
@@ -244,17 +314,20 @@ export function SalesAnalytics() {
               </SelectContent>
             </Select>
 
-            <Select value={productFilter} onValueChange={setProductFilter}>
+            <Select
+              value={productFilter}
+              onValueChange={(value) => setProductFilter(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Produto" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os produtos</SelectItem>
-                {mockProducts.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.title.length > 20
-                      ? `${product.title.substring(0, 20)}...`
-                      : product.title}
+                {uniqueProducts.map((product) => (
+                  <SelectItem key={product} value={product}>
+                    {product.length > 30
+                      ? `${product.substring(0, 30)}...`
+                      : product}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -263,56 +336,75 @@ export function SalesAnalytics() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 50,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                angle={-45}
-                textAnchor="end"
-                height={60}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis tickFormatter={formatYAxisLabel} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value) => {
-                  if (dataType === "revenue") {
-                    return [`R$ ${value}`, "Valor"];
-                  }
-                  return [value, dataType === "units" ? "Unidades" : "Pedidos"];
-                }}
-                labelFormatter={(label) => `Data: ${label}`}
-              />
-              <Line
-                type="monotone"
-                dataKey={getYAxisData()}
-                stroke="#8884d8"
-                strokeWidth={2}
-                activeDot={{ r: 8 }}
-                name={
-                  dataType === "revenue"
-                    ? "Receita"
-                    : dataType === "units"
-                    ? "Unidades"
-                    : "Pedidos"
-                }
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {chartData.length === 0 && (
-          <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-            Nenhum dado disponível para o período selecionado
+        {salesReport.length > 0 ? (
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={salesReport}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="formattedDate"
+                  height={60}
+                  tick={CustomXAxisTick}
+                  interval={calculateXAxisInterval()}
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  label={{
+                    value: getYAxisLabel(),
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                <Tooltip
+                  formatter={(value) => [
+                    formatTooltipValue(value),
+                    getYAxisLabel(),
+                  ]}
+                  labelFormatter={(label) => `Data: ${label}`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--chart-1))"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  dot={(props) => {
+                    const { cx, cy, payload, key } = props;
+                    return payload.isToday ? (
+                      <circle
+                        key={key || `dot-${payload.date}`}
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#ff4d4f"
+                        stroke="hsl(var(--chart-1))"
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      <circle
+                        key={key || `dot-${payload.date}`}
+                        cx={cx}
+                        cy={cy}
+                        r={3}
+                        fill="hsl(var(--chart-1))"
+                      />
+                    );
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+            <div className="text-center">
+              <p className="text-lg font-medium">Nenhum dado disponível</p>
+              <p className="text-sm">
+                Não há vendas para o período e filtros selecionados
+              </p>
+            </div>
           </div>
         )}
       </CardContent>

@@ -20,7 +20,5 @@ export async function getSalesReport() {
     )
     .select("s.*", "p.picture");
 
-  console.log("SALES REPORT", sales);
   return sales;
 }
-
