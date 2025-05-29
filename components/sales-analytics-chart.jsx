@@ -28,191 +28,258 @@ import {
 export function SalesAnalytics({ data }) {
   const [timeFilter, setTimeFilter] = useState("30days");
   const [dataType, setDataType] = useState("revenue");
-  const [productFilter, setProductFilter] = useState("all");
   const [salesReport, setSalesReport] = useState([]);
 
-  // Get unique products for the filter
-  const uniqueProducts = Array.from(
-    new Set(data?.map((item) => item.title) || [])
-  ).slice(0, 10); // Limit to first 10 products for better UX
-
+  console.log(data);
+  console.log(data.filter((s) => s.unit_price == "19.55"));
   const processData = () => {
     if (!data || data.length === 0) {
       setSalesReport([]);
       return;
     }
 
-    // Get current date in UTC
     const now = new Date();
 
-    // Create UTC dates for filtering - set to end of current day to include all of today
-    const todayEnd = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        23,
-        59,
-        59,
-        999
-      )
-    );
-    const filterDate = new Date(todayEnd);
+    if (timeFilter === "day") {
+      const todayStart = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          0,
+          0,
+          0,
+          0
+        )
+      );
+      const todayEnd = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      );
 
-    // Set filter date based on selection (in UTC)
-    switch (timeFilter) {
-      case "day":
-        filterDate.setUTCDate(todayEnd.getUTCDate() - 1);
-        break;
-      case "15days":
-        filterDate.setUTCDate(todayEnd.getUTCDate() - 15);
-        break;
-      case "30days":
-        filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
-        break;
-      case "month":
-        filterDate.setUTCMonth(todayEnd.getUTCMonth() - 1);
-        break;
-      default:
-        filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
+      // Filter data for today only
+      const todayData = data.filter((item) => {
+        const saleDate = new Date(item.sale_date);
+        return saleDate >= todayStart && saleDate <= todayEnd;
+      });
+
+      const groupedByHour = {};
+
+      todayData.forEach((item) => {
+        const saleDate = new Date(item.sale_date);
+        // Convert to local time for display
+        const localHour = saleDate.getHours();
+        const hourKey = `${String(localHour).padStart(2, "0")}:00`;
+
+        if (!groupedByHour[hourKey]) {
+          groupedByHour[hourKey] = [];
+        }
+        groupedByHour[hourKey].push(item);
+      });
+
+      const hourlyData = Object.entries(groupedByHour).map(([hour, items]) => {
+        let value = 0;
+
+        switch (dataType) {
+          case "revenue":
+            value = items.reduce(
+              (sum, item) =>
+                sum + Number.parseFloat(item.unit_price) * item.quantity_sold,
+              0
+            );
+            break;
+          case "units":
+            value = items.reduce((sum, item) => sum + item.quantity_sold, 0);
+            break;
+          case "orders":
+            value = new Set(items.map((item) => item.order_id)).size;
+            break;
+        }
+
+        return {
+          time: hour,
+          value: Math.round(value * 100) / 100,
+          formattedTime: hour,
+          isCurrentHour: Number.parseInt(hour.split(":")[0]) === now.getHours(),
+        };
+      });
+
+      // Sort by hour
+      hourlyData.sort((a, b) => a.time.localeCompare(b.time));
+
+      const filledHourlyData = [];
+      for (let hour = 0; hour < 24; hour++) {
+        const hourKey = `${String(hour).padStart(2, "0")}:00`;
+        const existingData = hourlyData.find((item) => item.time === hourKey);
+
+        if (existingData) {
+          filledHourlyData.push(existingData);
+        } else {
+          filledHourlyData.push({
+            time: hourKey,
+            value: 0,
+            formattedTime: hourKey,
+            isCurrentHour: hour === now.getHours(),
+          });
+        }
+      }
+
+      setSalesReport(filledHourlyData);
+    } else {
+      const todayEnd = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      );
+      const filterDate = new Date(todayEnd);
+      switch (timeFilter) {
+        case "15days":
+          filterDate.setUTCDate(todayEnd.getUTCDate() - 15);
+          break;
+        case "30days":
+          filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
+          break;
+        case "month":
+          filterDate.setUTCMonth(todayEnd.getUTCMonth() - 1);
+          break;
+        default:
+          filterDate.setUTCDate(todayEnd.getUTCDate() - 30);
+      }
+
+      const filteredData = data.filter((item) => {
+        const saleDate = new Date(item.sale_date);
+        return saleDate >= filterDate && saleDate <= todayEnd;
+      });
+
+      const groupedData = {};
+
+      filteredData.forEach((item) => {
+        const saleDate = new Date(item.sale_date);
+        const dateStr = `${saleDate.getUTCFullYear()}-${String(
+          saleDate.getUTCMonth() + 1
+        ).padStart(2, "0")}-${String(saleDate.getUTCDate()).padStart(2, "0")}`;
+
+        if (!groupedData[dateStr]) {
+          groupedData[dateStr] = [];
+        }
+        groupedData[dateStr].push(item);
+      });
+
+      // Calculate metrics for each date
+      const chartData = Object.entries(groupedData).map(([date, items]) => {
+        let value = 0;
+
+        switch (dataType) {
+          case "revenue":
+            value = items.reduce(
+              (sum, item) =>
+                sum + Number.parseFloat(item.unit_price) * item.quantity_sold,
+              0
+            );
+            break;
+          case "units":
+            value = items.reduce((sum, item) => sum + item.quantity_sold, 0);
+            break;
+          case "orders":
+            value = new Set(items.map((item) => item.order_id)).size;
+            break;
+        }
+
+        const [year, month, day] = date.split("-").map(Number);
+        const dateObj = new Date(Date.UTC(year, month - 1, day));
+
+        return {
+          date,
+          value: Math.round(value * 100) / 100,
+          formattedDate: `${String(dateObj.getUTCDate()).padStart(
+            2,
+            "0"
+          )}/${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}`,
+          isToday:
+            dateObj.getUTCFullYear() === now.getUTCFullYear() &&
+            dateObj.getUTCMonth() === now.getUTCMonth() &&
+            dateObj.getUTCDate() === now.getUTCDate(),
+        };
+      });
+
+      chartData.sort((a, b) => a.date.localeCompare(b.date));
+      const startDateParts = filterDate
+        .toISOString()
+        .split("T")[0]
+        .split("-")
+        .map(Number);
+      const endDateParts = todayEnd
+        .toISOString()
+        .split("T")[0]
+        .split("-")
+        .map(Number);
+
+      const startDate = new Date(
+        Date.UTC(startDateParts[0], startDateParts[1] - 1, startDateParts[2])
+      );
+      const endDate = new Date(
+        Date.UTC(endDateParts[0], endDateParts[1] - 1, endDateParts[2])
+      );
+
+      // Fill all dates in the range with 0 values for missing dates
+      const filledData = [];
+
+      // Loop through each day in the range using UTC dates
+      for (
+        let d = new Date(startDate);
+        d <= endDate;
+        d.setUTCDate(d.getUTCDate() + 1)
+      ) {
+        // Create date string in YYYY-MM-DD format
+        const dateStr = `${d.getUTCFullYear()}-${String(
+          d.getUTCMonth() + 1
+        ).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+        const existingData = chartData.find((item) => item.date === dateStr);
+
+        if (existingData) {
+          filledData.push(existingData);
+        } else {
+          // Check if this date is today
+          const isToday =
+            d.getUTCFullYear() === now.getUTCFullYear() &&
+            d.getUTCMonth() === now.getUTCMonth() &&
+            d.getUTCDate() === now.getUTCDate();
+
+          filledData.push({
+            date: dateStr,
+            value: 0,
+            formattedDate: `${String(d.getUTCDate()).padStart(2, "0")}/${String(
+              d.getUTCMonth() + 1
+            ).padStart(2, "0")}`,
+            isToday,
+          });
+        }
+      }
+
+      setSalesReport(filledData);
     }
 
-    // Filter data by date and product - using UTC comparison
-    const filteredData = data.filter((item) => {
-      const saleDate = new Date(item.sale_date);
-      const matchesDate = saleDate >= filterDate && saleDate <= todayEnd;
-      const matchesProduct =
-        productFilter === "all" || item.title === productFilter;
-      return matchesDate && matchesProduct;
-    });
-
-    // Group data by date (using UTC date strings)
-    const groupedData = {};
-
-    filteredData.forEach((item) => {
-      const saleDate = new Date(item.sale_date);
-      // Extract date in YYYY-MM-DD format using UTC
-      const dateStr = `${saleDate.getUTCFullYear()}-${String(
-        saleDate.getUTCMonth() + 1
-      ).padStart(2, "0")}-${String(saleDate.getUTCDate()).padStart(2, "0")}`;
-
-      if (!groupedData[dateStr]) {
-        groupedData[dateStr] = [];
-      }
-      groupedData[dateStr].push(item);
-    });
-
-    // Calculate metrics for each date
-    const chartData = Object.entries(groupedData).map(([date, items]) => {
-      let value = 0;
-
-      switch (dataType) {
-        case "revenue":
-          value = items.reduce(
-            (sum, item) =>
-              sum + Number.parseFloat(item.unit_price) * item.quantity_sold,
-            0
-          );
-          break;
-        case "units":
-          value = items.reduce((sum, item) => sum + item.quantity_sold, 0);
-          break;
-        case "orders":
-          value = new Set(items.map((item) => item.order_id)).size;
-          break;
-      }
-
-      // Parse the date string to create a date object for formatting
-      const [year, month, day] = date.split("-").map(Number);
-      const dateObj = new Date(Date.UTC(year, month - 1, day));
-
-      return {
-        date,
-        value: Math.round(value * 100) / 100, // Round to 2 decimal places
-        formattedDate: `${String(dateObj.getUTCDate()).padStart(
-          2,
-          "0"
-        )}/${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}`,
-        isToday:
-          dateObj.getUTCFullYear() === now.getUTCFullYear() &&
-          dateObj.getUTCMonth() === now.getUTCMonth() &&
-          dateObj.getUTCDate() === now.getUTCDate(),
-      };
-    });
-
-    // Sort by date
-    chartData.sort((a, b) => a.date.localeCompare(b.date));
-
-    // Create date range using UTC dates
-    const startDateParts = filterDate
-      .toISOString()
-      .split("T")[0]
-      .split("-")
-      .map(Number);
-    const endDateParts = todayEnd
-      .toISOString()
-      .split("T")[0]
-      .split("-")
-      .map(Number);
-
-    const startDate = new Date(
-      Date.UTC(startDateParts[0], startDateParts[1] - 1, startDateParts[2])
-    );
-    const endDate = new Date(
-      Date.UTC(endDateParts[0], endDateParts[1] - 1, endDateParts[2])
-    );
-
-    // Fill all dates in the range with 0 values for missing dates
-    const filledData = [];
-
-    // Loop through each day in the range using UTC dates
-    for (
-      let d = new Date(startDate);
-      d <= endDate;
-      d.setUTCDate(d.getUTCDate() + 1)
-    ) {
-      // Create date string in YYYY-MM-DD format
-      const dateStr = `${d.getUTCFullYear()}-${String(
-        d.getUTCMonth() + 1
-      ).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-      const existingData = chartData.find((item) => item.date === dateStr);
-
-      if (existingData) {
-        filledData.push(existingData);
-      } else {
-        // Check if this date is today
-        const isToday =
-          d.getUTCFullYear() === now.getUTCFullYear() &&
-          d.getUTCMonth() === now.getUTCMonth() &&
-          d.getUTCDate() === now.getUTCDate();
-
-        filledData.push({
-          date: dateStr,
-          value: 0,
-          formattedDate: `${String(d.getUTCDate()).padStart(2, "0")}/${String(
-            d.getUTCMonth() + 1
-          ).padStart(2, "0")}`,
-          isToday,
-        });
-      }
-    }
-
-    // Set the processed data
-    setSalesReport(filledData);
-
-    // Debug log to verify dates
-    console.log(
-      "Date range:",
-      filterDate.toISOString(),
-      "to",
-      todayEnd.toISOString()
-    );
-    console.log("Last few dates in chart:", filledData.slice(-3));
+    // Debug log
+    console.log("Time filter:", timeFilter);
+    console.log("Processed data:", salesReport.slice(-5));
   };
 
   useEffect(() => {
     processData();
-  }, [data, timeFilter, dataType, productFilter]);
+  }, [data, timeFilter, dataType]);
 
   const formatTooltipValue = (value) => {
     switch (dataType) {
@@ -242,18 +309,25 @@ export function SalesAnalytics({ data }) {
     }
   };
 
-  // Calculate the appropriate interval for X-axis labels based on the number of data points
+  // Calculate the appropriate interval for X-axis labels
   const calculateXAxisInterval = () => {
-    if (salesReport.length <= 15) return 0; // Show all labels for 15 or fewer points
-    if (salesReport.length <= 30) return 1; // Show every other label for 16-30 points
-    if (salesReport.length <= 60) return 2; // Show every third label for 31-60 points
-    return 3; // Show every fourth label for more than 60 points
+    if (timeFilter === "day") {
+      // For hourly data, show every 2-3 hours to avoid crowding
+      return 2;
+    }
+
+    if (salesReport.length <= 15) return 0;
+    if (salesReport.length <= 30) return 1;
+    if (salesReport.length <= 60) return 2;
+    return 3;
   };
 
-  // Custom tick for X-axis to highlight today
+  // Custom tick for X-axis
   const CustomXAxisTick = (props) => {
     const { x, y, payload } = props;
-    const isToday = salesReport[payload.index]?.isToday;
+    const dataPoint = salesReport[payload.index];
+    const isCurrent =
+      timeFilter === "day" ? dataPoint?.isCurrentHour : dataPoint?.isToday;
 
     return (
       <g transform={`translate(${x},${y})`}>
@@ -262,8 +336,8 @@ export function SalesAnalytics({ data }) {
           y={0}
           dy={16}
           textAnchor="end"
-          fill={isToday ? "#ff4d4f" : "#666"}
-          fontWeight={isToday ? "bold" : "normal"}
+          fill={isCurrent ? "#ff4d4f" : "#666"}
+          fontWeight={isCurrent ? "bold" : "normal"}
           fontSize={12}
           transform="rotate(-45)"
         >
@@ -273,6 +347,16 @@ export function SalesAnalytics({ data }) {
     );
   };
 
+  // Get the appropriate data key for X-axis
+  const getXAxisDataKey = () => {
+    return timeFilter === "day" ? "formattedTime" : "formattedDate";
+  };
+
+  // Get tooltip label
+  const getTooltipLabel = (label) => {
+    return timeFilter === "day" ? `Hora: ${label}` : `Data: ${label}`;
+  };
+
   return (
     <Card className="col-span-1" data-testid="sales-analytics-card">
       <CardHeader>
@@ -280,8 +364,9 @@ export function SalesAnalytics({ data }) {
           <div>
             <CardTitle>Análise de vendas</CardTitle>
             <CardDescription>
-              Visualize os dados das vendas de acordo com os filtros
-              selecionados.
+              {timeFilter === "day"
+                ? "Visualize as vendas de hoje por hora"
+                : "Visualize os dados das vendas de acordo com os filtros selecionados"}
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -313,25 +398,6 @@ export function SalesAnalytics({ data }) {
                 <SelectItem value="orders">Número de pedidos</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select
-              value={productFilter}
-              onValueChange={(value) => setProductFilter(value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Produto" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os produtos</SelectItem>
-                {uniqueProducts.map((product) => (
-                  <SelectItem key={product} value={product}>
-                    {product.length > 30
-                      ? `${product.substring(0, 30)}...`
-                      : product}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </CardHeader>
@@ -345,7 +411,7 @@ export function SalesAnalytics({ data }) {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                  dataKey="formattedDate"
+                  dataKey={getXAxisDataKey()}
                   height={60}
                   tick={CustomXAxisTick}
                   interval={calculateXAxisInterval()}
@@ -363,7 +429,7 @@ export function SalesAnalytics({ data }) {
                     formatTooltipValue(value),
                     getYAxisLabel(),
                   ]}
-                  labelFormatter={(label) => `Data: ${label}`}
+                  labelFormatter={getTooltipLabel}
                 />
                 <Line
                   type="monotone"
@@ -373,9 +439,14 @@ export function SalesAnalytics({ data }) {
                   activeDot={{ r: 6 }}
                   dot={(props) => {
                     const { cx, cy, payload, key } = props;
-                    return payload.isToday ? (
+                    const isCurrent =
+                      timeFilter === "day"
+                        ? payload.isCurrentHour
+                        : payload.isToday;
+
+                    return isCurrent ? (
                       <circle
-                        key={key || `dot-${payload.date}`}
+                        key={key || `dot-${payload.time || payload.date}`}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -385,7 +456,7 @@ export function SalesAnalytics({ data }) {
                       />
                     ) : (
                       <circle
-                        key={key || `dot-${payload.date}`}
+                        key={key || `dot-${payload.time || payload.date}`}
                         cx={cx}
                         cy={cy}
                         r={3}
@@ -402,7 +473,9 @@ export function SalesAnalytics({ data }) {
             <div className="text-center">
               <p className="text-lg font-medium">Nenhum dado disponível</p>
               <p className="text-sm">
-                Não há vendas para o período e filtros selecionados
+                {timeFilter === "day"
+                  ? "Não há vendas registradas para hoje"
+                  : "Não há vendas para o período selecionado"}
               </p>
             </div>
           </div>
