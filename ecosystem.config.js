@@ -1,3 +1,10 @@
+const fs = require("fs");
+const dotenv = require("dotenv");
+
+const envConfig = fs.existsSync("/etc/app.env")
+  ? dotenv.parse(fs.readFileSync("/etc/app.env"))
+  : dotenv.parse(fs.readFileSync(".env"));
+
 module.exports = {
   apps: [
     {
@@ -7,6 +14,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        ...envConfig,
       },
     },
     {
@@ -15,7 +23,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3001,
-        DATABASE_URL: process.env.DATABASE_URL,
+        ...envConfig,
       },
     },
   ],

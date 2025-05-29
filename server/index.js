@@ -34,8 +34,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://aminhamarca.com",
   "https://aminhamarca.com",
-  "http://18.236.159.137:3000",,
-  "http://18.236.159.137"
+  "http://18.236.159.137:3000",
+  "http://18.236.159.137",
 ];
 
 app.use(
@@ -85,26 +85,46 @@ app.get("/api/units-sold", unitsSold);
 app.get("/api/minimum-stock", minimumStock);
 app.get("/api/sales-report", salesReport);
 
-
 cron.schedule("0 * * * *", async () => {
-  try {
-    const publicUrl = process.env.EC2_PUBLIC_URL || "http://localhost:3001";
-    console.log(publicUrl);
-    const res = await axios.get(`${publicUrl}/api/sales`);
-  } catch (error) {
-    console.error("❌ Erro no cron job:", error.message);
-  }
+  await runRefreshToken();
+  await runSalesCron();
+  await runStockCron();
 });
 
-cron.schedule("* * * * *", async () => {
+const runRefreshToken = async () => {
+  try {
+    await refreshAccessToken();
+  } catch (error) {
+    console.error(
+      "❌ Erro no cron job de atualização de token:",
+      error.message
+    );
+  }
+};
+
+const runSalesCron = async () => {
+  try {
+    const publicUrl = process.env.EC2_PUBLIC_URL || "http://localhost:3001";
+    const res = await axios.get(`${publicUrl}/api/sales`);
+  } catch (error) {
+    console.error("❌ Erro no cron job de vendas:", error.message);
+  }
+};
+
+const runStockCron = async () => {
   try {
     const publicUrl = process.env.EC2_PUBLIC_URL || "http://localhost:3001";
     const res = await axios.get(`${publicUrl}/api/stock/fetch-all-items`);
   } catch (error) {
-    console.error("❌ Erro no cron job:", error.message);
+    console.error("❌ Erro no cron job de estoque:", error.message);
   }
-});
+};
 
+cron.schedule("0 * * * *", async () => {
+  await runRefreshToken();
+  await runSalesCron();
+  await runStockCron();
+});
 
 // Iniciar o servidor
 app.listen(PORT, "0.0.0.0", () => {
