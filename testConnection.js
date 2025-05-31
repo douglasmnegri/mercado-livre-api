@@ -1,6 +1,6 @@
 const { Client } = require("pg");
 
-const connectionString = "postgresql://postgres.gzzukmnujjjpyqvhheqm:Z.AruEbP8u9AqiW@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
+const connectionString = process.env.DATABASE_URL;
 
 const client = new Client({
   connectionString,
