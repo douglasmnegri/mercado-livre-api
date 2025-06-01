@@ -194,9 +194,9 @@ export default function Dashboard({
               </Card>
               <Card className="col-span-3">
                 <CardHeader>
-                  <CardTitle>Top Performing Products</CardTitle>
+                  <CardTitle>Produtos Alta Performance</CardTitle>
                   <CardDescription>
-                    Best selling products by revenue
+                    Vendas filtradas por faturamento
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -213,7 +213,7 @@ export default function Dashboard({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <SalesChart />
+                  <SalesChart salesReport={salesReport} />
                 </CardContent>
               </Card>
             </div>
