@@ -18,6 +18,10 @@ module.exports = {
     },
     extend: {
       colors: {
+        "click-green": {
+          DEFAULT: "#a3ff00",
+          dark: "#7bc700",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
