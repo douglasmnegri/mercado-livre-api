@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import {
   Line,
   LineChart,
@@ -115,6 +116,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export function SalesChart() {
+  useEffect(() => {
+    fetch("http://localhost:3001/api/sales-monthly?year=2025&month=5")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+      });
+  }, []);
   return (
     <ResponsiveContainer width="100%" height={350}>
       <LineChart

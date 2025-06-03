@@ -21,6 +21,7 @@ import {
 import { useState, useEffect } from "react";
 import { AnalyticsContent } from "../components/analytics-content";
 import { SalesContent } from "./sales-content";
+import { SalesAnalytics } from "./sales-analytics-chart";
 
 export default function Dashboard({
   fullStock,
@@ -206,15 +207,7 @@ export default function Dashboard({
             </div>
             <div className="grid gap-4 md:grid-cols-1">
               <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Number of Products Sold (Sales)</CardTitle>
-                  <CardDescription>
-                    Monthly sales performance by product category
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <SalesChart salesReport={salesReport} />
-                </CardContent>
+                <SalesAnalytics data={salesReport} />
               </Card>
             </div>
           </TabsContent>

@@ -10,7 +10,7 @@ import {
   getMinimumStock,
 } from "../db-queries/stock.js";
 
-import { getSalesReport } from "../db-queries/sales.js";
+import { getSalesReport, getSalesByMonth } from "../db-queries/sales.js";
 
 export async function fullStock(req, res) {
   try {
@@ -101,5 +101,25 @@ export async function salesReport(req, res) {
   } catch (error) {
     console.error("Erro ao buscar estoque:", error);
     res.status(500).json({ error: "Erro ao buscar estoque" });
+  }
+}
+
+export async function salesMonth(req, res) {
+  console.log(req, res);
+  try {
+    const { year, month } = req.query;
+
+    if (!year || !month) {
+      return res.status(400).json({ error: "Year and month are required" });
+    }
+
+    const yearNum = Number(year);
+    const monthNum = Number(month);
+
+    const monthlySales = await getSalesByMonth(yearNum, monthNum);
+    res.json(monthlySales);
+  } catch (error) {
+    console.error("Erro ao buscar vendas por mês:", error);
+    res.status(500).json({ error: "Erro ao buscar vendas por mês" });
   }
 }

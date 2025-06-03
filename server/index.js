@@ -16,6 +16,8 @@ const {
   salesReport,
 } = require("./api/full-stock.js");
 
+const { getSalesByMonth } = require("./db-queries/sales.js");
+
 const { router: loginRouter } = require("./routes/login.js");
 const {
   router: tokenRouter,
@@ -84,6 +86,22 @@ app.get("/api/best-selling-products", bestSellingProducts);
 app.get("/api/units-sold", unitsSold);
 app.get("/api/minimum-stock", minimumStock);
 app.get("/api/sales-report", salesReport);
+app.get("/api/sales-monthly", async (req, res) => {
+  try {
+    const { year, month } = req.query;
+
+    if (!year || !month) {
+      return res.status(400).json({ error: "Year and month are required" });
+    }
+
+    const data = await getSalesByMonth(Number(year), Number(month));
+
+    res.json(data);
+  } catch (error) {
+    console.error("Erro em sales-monthly:", error);
+    res.status(500).json({ error: "Erro ao buscar vendas mensais" });
+  }
+});
 
 cron.schedule("0 * * * *", async () => {
   await runRefreshToken();

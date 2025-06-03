@@ -36,8 +36,6 @@ export function SalesContent({ salesReport }) {
 
   return (
     <div className="space-y-6">
-      <SalesAnalytics data={salesReport} />
-
       <Card>
         <CardHeader>
           <CardTitle>Informações de Vendas</CardTitle>
