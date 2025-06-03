@@ -18,7 +18,8 @@ export async function getSalesReport() {
       "s.product_id",
       "p.general_id"
     )
-    .select("s.*", "p.picture");
+    .select("s.*", "p.picture")
+    .orderBy("s.sale_date", "desc"); 
 
   console.log(sales);
   return sales;
@@ -37,4 +38,4 @@ export async function getSalesByMonth(year, month) {
   return monthlySales;
 }
 
-getSalesByMonth("2025", "05");
+
