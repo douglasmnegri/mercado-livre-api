@@ -3,10 +3,8 @@ import bcrypt from "bcrypt";
 import knex from "knex";
 import config from "../../knexfile.js"; // precisa do `.js` no final quando usando ESM
 
-const env =
-  process.env.NODE_ENV !== "production" ? "development" : "production";
+const env = "production";
 const dbConnection = knex(config[env]);
-
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
@@ -14,7 +12,6 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await dbConnection("users").where({ email }).first();
-
     if (!user) {
       return res.status(401).json({ error: "Usuário não encontrado" });
     }

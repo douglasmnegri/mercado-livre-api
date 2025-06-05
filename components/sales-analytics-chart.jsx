@@ -30,8 +30,6 @@ export function SalesAnalytics({ data }) {
   const [dataType, setDataType] = useState("revenue");
   const [salesReport, setSalesReport] = useState([]);
 
-  console.log(data);
-  console.log(data.filter((s) => s.unit_price == "19.55"));
   const processData = () => {
     if (!data || data.length === 0) {
       setSalesReport([]);
@@ -271,10 +269,6 @@ export function SalesAnalytics({ data }) {
 
       setSalesReport(filledData);
     }
-
-    // Debug log
-    console.log("Time filter:", timeFilter);
-    console.log("Processed data:", salesReport.slice(-5));
   };
 
   useEffect(() => {

@@ -76,7 +76,6 @@ export async function bestSellingProducts(req, res) {
 export async function unitsSold(req, res) {
   try {
     const unitsSold = await getUnitsSold();
-    console.log(unitsSold);
     res.json(unitsSold);
   } catch (error) {
     console.error("Erro ao buscar estoque:", error);
@@ -105,7 +104,6 @@ export async function salesReport(req, res) {
 }
 
 export async function salesMonth(req, res) {
-  console.log(req, res);
   try {
     const { year, month } = req.query;
 

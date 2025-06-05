@@ -103,12 +103,6 @@ app.get("/api/sales-monthly", async (req, res) => {
   }
 });
 
-cron.schedule("0 * * * *", async () => {
-  await runRefreshToken();
-  await runSalesCron();
-  await runStockCron();
-});
-
 const runRefreshToken = async () => {
   try {
     await refreshAccessToken();
@@ -138,7 +132,7 @@ const runStockCron = async () => {
   }
 };
 
-cron.schedule("0 * * * *", async () => {
+cron.schedule("* * * * *", async () => {
   await runRefreshToken();
   await runSalesCron();
   await runStockCron();

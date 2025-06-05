@@ -7,12 +7,7 @@ require("dotenv").config();
 module.exports = {
   development: {
     client: "postgresql",
-    connection: {
-      host: "localhost",
-      user: "douglasmnegri",
-      password: "ml",
-      database: "mercado_livre_db",
-    },
+    connection: process.env.DATABASE_URL,
     pool: {
       min: 2,
       max: 10,
@@ -22,7 +17,6 @@ module.exports = {
       directory: "./migrations",
     },
   },
-
   staging: {
     client: "postgresql",
     connection: {

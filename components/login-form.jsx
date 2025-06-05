@@ -46,7 +46,6 @@ export function LoginForm() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("🔐 Dados recebidos:", data);
 
         localStorage.setItem("authToken", data.token);
         router.refresh();

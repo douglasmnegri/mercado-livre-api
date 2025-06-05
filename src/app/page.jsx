@@ -41,8 +41,7 @@ export default function Page() {
     if (!isAuthenticated) return;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-    console.log(apiUrl)
+
 
     fetch(`${apiUrl}/api/full-stock`)
       .then((res) => res.json())

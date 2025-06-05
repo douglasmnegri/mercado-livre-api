@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const databaseTokens = require("../db-queries/refresh-token");
 const listOfProducts = require("../db-queries/products-list");
 const dbConnection = require("../db/index");
@@ -103,4 +103,4 @@ router.get("/fetch-all-items", async (req, res) => {
   }
 });
 
-module.exports = { router }; 
+module.exports = { router };
